@@ -1,10 +1,17 @@
 package main
 
 import (
+	"glower/initializers"
+	"glower/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+func init() {
+	initializers.LoadEnvVariables()
+	model.InitDatabase()
+}
 
 func main() {
 	e := gin.Default()
@@ -16,5 +23,5 @@ func main() {
 		})
 	})
 
-	e.Run(":8080")
+	e.Run()
 }

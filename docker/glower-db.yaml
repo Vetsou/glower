@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  glower-pgdb:
+    image: postgres:16.4-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: glower-user
+      POSTGRES_PASSWORD: glower-password
+      POSTGRES_DB: glower-db
+    ports:
+      - '5440:5432'
+    volumes:
+      - product-vol:/var/lib/postgresql/data
+  glower-pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: pg-glower-user@admin.com
+      PGADMIN_DEFAULT_PASSWORD: pg-glower-pass
+    ports:
+      - '5430:80'
+    depends_on:
+      - glower-pgdb
+
+volumes:
+  product-vol:
+    driver: local

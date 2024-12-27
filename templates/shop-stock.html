@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Product List</title>
+</head>
+<body>
+  <h1>Here is a list of our products!</h1>
+  <a href="/">Go to home page</a>
+  {{range .flowers}}
+    <div>
+      <h3>{{.Name}} - ${{.Price}}</h3>
+      <p>Description: {{.Description}}</p>
+      <p>Discount: ${{.Discount}}</p>
+      <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
+    </div>
+  {{end}}
+</body>
+</html>

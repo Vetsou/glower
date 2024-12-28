@@ -10,10 +10,3 @@ type Flower struct {
 	Description string
 	Discount    float32
 }
-
-type Stock struct {
-	gorm.Model
-	ProductID uint
-	Count     uint
-	Limit     uint
-}

@@ -1,0 +1,13 @@
+<div class="flower-{{.ID}}">
+  <h3>{{.name}} - ${{.price}}</h3>
+  <p>Description: {{.description}}</p>
+  <p>Discount: ${{.discount}}</p>
+  <p>Available: {{if .available}}Yes{{else}}No{{end}}</p>
+  <button 
+    hx-delete="/flowers/{{.ID}}" 
+    hx-target=".flower-{{.ID}}" 
+    hx-swap="outerHTML"
+    hx-on="htmx:responseError: #err-response">
+      Delete
+  </button>
+</div>

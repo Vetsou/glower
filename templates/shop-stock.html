@@ -2,17 +2,57 @@
 <html>
 <head>
   <title>Product List</title>
+  <script 
+    src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
+    integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
+    crossorigin="anonymous">
+  </script>
 </head>
 <body>
   <h1>Here is a list of our products!</h1>
   <a href="/">Go to home page</a>
-  {{range .flowers}}
-    <div>
-      <h3>{{.Name}} - ${{.Price}}</h3>
-      <p>Description: {{.Description}}</p>
-      <p>Discount: ${{.Discount}}</p>
-      <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
-    </div>
-  {{end}}
+  <form
+    hx-post="/flowers"
+    hx-target="#flower-products"
+    hx-swap="beforeend"
+    hx-on="htmx:responseError: #add-err-response"
+  >
+    <label for="fname">Flower name</label>
+    <input id="fname" name="name" placeholder="Enter flower name..." required/>
+
+    <label for="fprice">Flower price</label>
+    <input id="fprice" name="price" placeholder="Enter flower price... (e.g. 14.99)" required/>
+
+    <label for="favailable">Is available to order</label>
+    <input id="favailable" name="available" type="checkbox" value="true"/>
+
+    <label for="fdescription">Flower description</label>
+    <input id="fdescription" name="description" placeholder="Enter description..." />
+
+    <label for="fdiscount">Flower discount</label>
+    <input id="fdiscount" name="discount" placeholder="Enter discount..." />
+
+    <button>Add new flower</button>
+  </form>
+
+  <div id="err-response" style="color: red; background-color: #333;"></div>
+
+  <div id="flower-products">
+    {{range .flowers}}
+      <div class="flower-{{.ID}}">
+        <h3>{{.Name}} - ${{.Price}}</h3>
+        <p>Description: {{.Description}}</p>
+        <p>Discount: ${{.Discount}}</p>
+        <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
+        <button 
+          hx-delete="/flowers/{{.ID}}" 
+          hx-target=".flower-{{.ID}}" 
+          hx-swap="outerHTML"
+          hx-on="htmx:responseError: #err-response">
+            Delete
+        </button>
+      </div>
+    {{end}}
+  </div>
 </body>
 </html>

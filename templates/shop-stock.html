@@ -32,6 +32,9 @@
     <label for="fdiscount">Flower discount</label>
     <input id="fdiscount" name="discount" placeholder="Enter discount..." />
 
+    <label for="fstock">Flower stock</label>
+    <input id="fstock" name="stock" placeholder="Enter stock..." />
+
     <button>Add new flower</button>
   </form>
 
@@ -40,13 +43,20 @@
   <div id="flower-products">
     {{range .flowers}}
       <div class="flower-{{.ID}}">
-        <h3>{{.Name}} - ${{.Price}}</h3>
+        <h3>{{.Name}} -
+          {{if .DiscountPrice}}
+            <span style="text-decoration: line-through;">{{.Price}}$</span>
+            <span> ${{.DiscountPrice}}$</span>
+          {{else}}
+            {{.Price}}$
+          {{end}}
+        </h3>
+        <p>Stock: {{.Inventory.Stock}}</p>
         <p>Description: {{.Description}}</p>
-        <p>Discount: ${{.Discount}}</p>
         <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
         <button 
-          hx-delete="/flowers/{{.ID}}" 
-          hx-target=".flower-{{.ID}}" 
+          hx-delete="/flowers/{{.ID}}"
+          hx-target=".flower-{{.ID}}"
           hx-swap="outerHTML"
           hx-on="htmx:responseError: #err-response">
             Delete

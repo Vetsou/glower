@@ -1,0 +1,13 @@
+package model
+
+import "gorm.io/gorm"
+
+type Flower struct {
+	gorm.Model
+	Name          string
+	Price         float32
+	Available     bool
+	Description   string
+	DiscountPrice float32
+	Inventory     Inventory `gorm:"foreignKey:FlowerID"`
+}

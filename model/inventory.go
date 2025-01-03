@@ -6,6 +6,6 @@ import (
 
 type Inventory struct {
 	gorm.Model
-	FlowerID uint
-	Stock    uint
+	FlowerID uint `gorm:"not null"`
+	Stock    uint `gorm:"not null"`
 }

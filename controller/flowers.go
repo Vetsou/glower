@@ -27,8 +27,8 @@ func GetFlowers(c *gin.Context) {
 }
 
 func AddFlower(c *gin.Context) {
-	var formData addFlowerForm
-	if err := formData.fromContext(c); err != nil {
+	var formData model.AddFlowerForm
+	if err := c.ShouldBind(&formData); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "Invalid form data: " + err.Error(),
@@ -37,11 +37,11 @@ func AddFlower(c *gin.Context) {
 	}
 
 	flower := model.Flower{
-		Name:          formData.name,
-		Price:         formData.price,
-		Available:     formData.available,
-		Description:   formData.description,
-		DiscountPrice: formData.discountPrice,
+		Name:          formData.Name,
+		Price:         formData.Price,
+		Available:     formData.Available,
+		Description:   formData.Description,
+		DiscountPrice: formData.DiscountPrice,
 	}
 
 	tx := model.DB.Begin()
@@ -56,7 +56,7 @@ func AddFlower(c *gin.Context) {
 
 	inventory := model.Inventory{
 		FlowerID: flower.ID,
-		Stock:    formData.stock,
+		Stock:    formData.Stock,
 	}
 
 	if err := tx.Create(&inventory).Error; err != nil {

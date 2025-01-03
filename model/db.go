@@ -38,7 +38,7 @@ func setupDatabase() {
 func InitDatabase() {
 	setupDatabase()
 
-	err := DB.AutoMigrate(&Flower{})
+	err := DB.AutoMigrate(&Flower{}, &Inventory{})
 	if err != nil {
 		log.Fatal("Error during DB auto migrate: " + err.Error())
 	}

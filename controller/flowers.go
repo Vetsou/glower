@@ -3,15 +3,16 @@ package controller
 import (
 	"glower/model"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm/clause"
 )
 
 func GetFlowers(c *gin.Context) {
 	var flowers []model.Flower
 
-	err := model.DB.Select("ID", "Name", "Price", "Available", "Description", "Discount").Find(&flowers).Error
+	err := model.DB.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
+
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
@@ -26,49 +27,26 @@ func GetFlowers(c *gin.Context) {
 }
 
 func AddFlower(c *gin.Context) {
-	name := c.PostForm("name")
-	priceStr := c.PostForm("price")
-	availableStr := c.PostForm("available")
-	description := c.PostForm("description")
-	discountStr := c.PostForm("discount")
-
-	price, err := strconv.ParseFloat(priceStr, 32)
-	if err != nil {
+	var formData model.AddFlowerForm
+	if err := c.ShouldBind(&formData); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
-			"message": "Invalid price format.",
+			"message": "Invalid form data: " + err.Error(),
 		})
 		return
-	}
-
-	var available bool
-	if availableStr == "" {
-		available = false
-	} else if availableStr == "true" {
-		available = true
-	} else {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "Invalid available format. Should be 'true' or empty for 'false'.",
-		})
-		return
-	}
-
-	discount, err := strconv.ParseFloat(discountStr, 32)
-	if err != nil {
-		discount = 0
 	}
 
 	flower := model.Flower{
-		Name:        name,
-		Price:       float32(price),
-		Available:   available,
-		Description: description,
-		Discount:    float32(discount),
+		Name:          formData.Name,
+		Price:         formData.Price,
+		Available:     formData.Available,
+		Description:   formData.Description,
+		DiscountPrice: formData.DiscountPrice,
 	}
 
-	err = model.DB.Create(&flower).Error
-	if err != nil {
+	tx := model.DB.Begin()
+
+	if err := tx.Create(&flower).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
 			"message": "Failed to add flower to the database.",
@@ -76,20 +54,36 @@ func AddFlower(c *gin.Context) {
 		return
 	}
 
+	inventory := model.Inventory{
+		FlowerID: flower.ID,
+		Stock:    formData.Stock,
+	}
+
+	if err := tx.Create(&inventory).Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to add inventory for the flower.",
+		})
+		return
+	}
+
+	tx.Commit()
+
 	c.HTML(http.StatusOK, "stock-add.html", gin.H{
-		"ID":          flower.ID,
-		"name":        flower.Name,
-		"price":       flower.Price,
-		"available":   flower.Available,
-		"description": flower.Description,
-		"discount":    flower.Discount,
+		"ID":            flower.ID,
+		"name":          flower.Name,
+		"price":         flower.Price,
+		"available":     flower.Available,
+		"description":   flower.Description,
+		"discountPrice": flower.DiscountPrice,
+		"stock":         inventory.Stock,
 	})
 }
 
 func RemoveFlower(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := model.DB.Delete(&model.Flower{}, id).Error; err != nil {
+	if err := model.DB.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
 			"message": "Error deleting flower from DB.",

@@ -2,7 +2,6 @@ package initializers
 
 import (
 	"glower/controller"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +9,7 @@ import (
 func RegisterServerRoutes(e *gin.Engine) {
 	homeGroup := e.Group("/")
 	{
-		homeGroup.GET("/", func(c *gin.Context) { c.HTML(http.StatusOK, "index.html", nil) })
+		homeGroup.GET("/", controller.GetHomePage)
 	}
 
 	flowersGroup := e.Group("/flowers")
@@ -18,5 +17,17 @@ func RegisterServerRoutes(e *gin.Engine) {
 		flowersGroup.GET("/", controller.GetFlowers)
 		flowersGroup.POST("/", controller.AddFlower)
 		flowersGroup.DELETE("/:id", controller.RemoveFlower)
+	}
+
+	authGroup := e.Group("/auth")
+	{
+		authGroup.POST("/signup", controller.RegisterUser)
+		authGroup.POST("/login", controller.Login)
+	}
+
+	userGroup := e.Group("/user")
+	{
+		userGroup.GET("/register", controller.GetRegisterPage)
+		userGroup.GET("/login", controller.GetLoginPage)
 	}
 }

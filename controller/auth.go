@@ -39,18 +39,10 @@ func RegisterUser(c *gin.Context) {
 
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(formData.Password), bcrypt.DefaultCost)
 	if err != nil {
-		switch err {
-		case bcrypt.ErrMismatchedHashAndPassword:
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Password hashing failed. Please try again later.",
-			})
-		default:
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "An unexpected error occurred while processing your request.",
-			})
-		}
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "An unexpected error occurred while processing your request.",
+		})
 		return
 	}
 
@@ -75,5 +67,33 @@ func RegisterUser(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
+	var formData model.LoginUserForm
+	if err := c.ShouldBind(&formData); err != nil {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "Invalid form data: " + err.Error(),
+		})
+		return
+	}
 
+	var user model.User
+	if err := model.DB.Where("email = ?", formData.Email).First(&user).Error; err != nil {
+		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
+			"code":    http.StatusUnauthorized,
+			"message": "Invalid email or password.",
+		})
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(formData.Password)); err != nil {
+		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
+			"code":    http.StatusUnauthorized,
+			"message": "Invalid email or password.",
+		})
+		return
+	}
+
+	c.HTML(http.StatusOK, "login-success.html", gin.H{
+		"name": user.FirstName + " " + user.LastName,
+	})
 }

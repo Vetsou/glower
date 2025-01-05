@@ -11,5 +11,5 @@ func GetRegisterPage(c *gin.Context) {
 }
 
 func GetLoginPage(c *gin.Context) {
-
+	c.HTML(http.StatusOK, "user-login.html", nil)
 }

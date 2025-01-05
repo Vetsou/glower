@@ -13,6 +13,11 @@ type AddFlowerForm struct {
 	Stock         uint    `form:"stock" binding:"required"`
 }
 
+type LoginUserForm struct {
+	Email    string `form:"email" binding:"required"`
+	Password string `form:"password" binding:"required"`
+}
+
 type RegisterUserFrom struct {
 	FirstName       string `form:"first-name" binding:"required"`
 	LastName        string `form:"last-name" binding:"required"`

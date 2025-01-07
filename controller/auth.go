@@ -94,20 +94,20 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.CreateJWT(user.ID, user.Email)
+	accessToken, err := utils.CreateJWT(user, user.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
-			"message": "Failed to generate token." + err.Error(),
+			"message": "Failed to generate token.",
 		})
 		return
 	}
 
-	refreshToken, err := utils.CreateRefreshToken(user.ID)
+	refreshToken, err := utils.CreateRefreshToken(user)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
-			"message": "Failed to generate token." + err.Error(),
+			"message": "Failed to generate token.",
 		})
 		return
 	}

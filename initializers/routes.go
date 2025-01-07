@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"glower/controller"
+	"glower/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,5 +30,6 @@ func RegisterServerRoutes(e *gin.Engine) {
 	{
 		userGroup.GET("/register", controller.GetRegisterPage)
 		userGroup.GET("/login", controller.GetLoginPage)
+		userGroup.GET("/profile", middleware.VerifyAuthToken, controller.GetProfilePage)
 	}
 }

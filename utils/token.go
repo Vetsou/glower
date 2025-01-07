@@ -9,6 +9,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	RefreshTokenName = "refresh-token"
+	AccessTokenName  = "access-token"
+)
+
 var jwtSecret = []byte(os.Getenv("ACCESS_TOKEN_SECRET"))
 var refreshSecret = []byte(os.Getenv("REFRESH_TOKEN_SECRET"))
 

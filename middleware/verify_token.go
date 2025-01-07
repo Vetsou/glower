@@ -8,10 +8,11 @@ import (
 )
 
 func VerifyAuthToken(c *gin.Context) {
-	tokenStr, err := c.Cookie("access-token")
+	tokenStr, err := c.Cookie(utils.AccessTokenName)
 	if err != nil {
 		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
-			"error": "Access token is missing.",
+			"code":    http.StatusUnauthorized,
+			"message": "Access token is missing.",
 		})
 		c.Abort()
 		return
@@ -20,7 +21,8 @@ func VerifyAuthToken(c *gin.Context) {
 	claims, err := utils.VerifyToken(tokenStr)
 	if err != nil {
 		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
-			"error": "Invalid token.",
+			"code":    http.StatusUnauthorized,
+			"message": "Invalid access token.",
 		})
 		c.Abort()
 		return

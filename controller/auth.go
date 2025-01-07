@@ -112,9 +112,18 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refresh-token", refreshToken, 3*24*60*60, "/", "", false, true)
-	c.SetCookie("access-token", accessToken, 24*60*60, "/", "", false, true)
+	c.SetCookie(utils.RefreshTokenName, refreshToken, 3*24*60*60, "/", "", false, true)
+	c.SetCookie(utils.AccessTokenName, accessToken, 24*60*60, "/", "", false, true)
 	c.HTML(http.StatusOK, "login-success.html", gin.H{
 		"name": user.FirstName + " " + user.LastName,
+	})
+}
+
+func Logout(c *gin.Context) {
+	c.SetCookie(utils.RefreshTokenName, "", -1, "/", "", false, true)
+	c.SetCookie(utils.AccessTokenName, "", -1, "/", "", false, true)
+
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"message": "You have successfully logged out.",
 	})
 }

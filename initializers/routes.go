@@ -24,6 +24,7 @@ func RegisterServerRoutes(e *gin.Engine) {
 	{
 		authGroup.POST("/signup", controller.RegisterUser)
 		authGroup.POST("/login", controller.Login)
+		authGroup.POST("/logout", middleware.VerifyAuthToken, controller.Logout)
 	}
 
 	userGroup := e.Group("/user")

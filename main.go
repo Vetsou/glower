@@ -14,8 +14,7 @@ func init() {
 
 func main() {
 	e := gin.Default()
-	e.LoadHTMLGlob("templates/*")
-
+	initializers.LoadHTMLTemplates(e)
 	initializers.RegisterServerRoutes(e)
 
 	e.Run()

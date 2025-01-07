@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
-  <header></header>
+  <header>
+    <title>Home</title>
+  </header>
   <body>
+    {{if .message}}<div>{{.message}}</div>{{end}}
     <h1>Welcome to glower shop!</h1>
     <a href="/flowers">Go to shop</a>
   </body>

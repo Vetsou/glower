@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <header>
+    <title>User Login</title>
+    <script 
+      src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
+      integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
+      crossorigin="anonymous">
+    </script>
+  </header>
+  <body>
+  <form
+    hx-post="/auth/login"
+    hx-target="#login-res"
+    hx-swap="beforeend"
+    hx-on="htmx:responseError: #login-err"
+  >
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email" placeholder="Enter your email..." required />
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" placeholder="Enter your password..." required />
+
+    <button>Login</button>
+  </form>
+  
+  <div id="login-res"></div>
+  <div id="login-err"></div>
+  </body>
+</html>

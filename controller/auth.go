@@ -2,6 +2,7 @@ package controller
 
 import (
 	"glower/model"
+	"glower/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -93,6 +94,26 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	accessToken, err := utils.CreateJWT(user.ID, user.Email)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to generate token." + err.Error(),
+		})
+		return
+	}
+
+	refreshToken, err := utils.CreateRefreshToken(user.ID)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to generate token." + err.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("refresh-token", refreshToken, 3*24*60*60, "/", "", false, true)
+	c.SetCookie("access-token", accessToken, 24*60*60, "/", "", false, true)
 	c.HTML(http.StatusOK, "login-success.html", gin.H{
 		"name": user.FirstName + " " + user.LastName,
 	})

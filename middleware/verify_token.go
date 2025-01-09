@@ -1,14 +1,14 @@
 package middleware
 
 import (
-	"glower/utils"
+	"glower/auth"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func VerifyAuthToken(c *gin.Context) {
-	tokenStr, err := c.Cookie(utils.AccessTokenName)
+	tokenStr, err := c.Cookie(auth.AccessTokenName)
 	if err != nil {
 		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
 			"code":    http.StatusUnauthorized,
@@ -18,7 +18,7 @@ func VerifyAuthToken(c *gin.Context) {
 		return
 	}
 
-	claims, err := utils.VerifyToken(tokenStr)
+	claims, err := auth.VerifyToken(tokenStr)
 	if err != nil {
 		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
 			"code":    http.StatusUnauthorized,

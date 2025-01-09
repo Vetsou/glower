@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func LoadHTMLTemplates(e *gin.Engine) {
+func InitHTMLTemplates(e *gin.Engine) {
 	patterns := []string{"templates/pages/*", "templates/partials/*"}
 
 	var files []string

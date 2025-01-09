@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"glower/auth"
+	"glower/input/form"
 	"glower/model"
-	"glower/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,7 @@ import (
 const minEntropyBits = 60
 
 func RegisterUser(c *gin.Context) {
-	var formData model.RegisterUserFrom
+	var formData form.RegisterUserFrom
 	if err := c.ShouldBind(&formData); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
@@ -68,7 +69,7 @@ func RegisterUser(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var formData model.LoginUserForm
+	var formData form.LoginUserForm
 	if err := c.ShouldBind(&formData); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
@@ -94,7 +95,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := utils.CreateJWT(user, user.Email)
+	accessToken, err := auth.CreateJWT(user, user.Email)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
@@ -103,7 +104,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	refreshToken, err := utils.CreateRefreshToken(user)
+	refreshToken, err := auth.CreateRefreshToken(user)
 	if err != nil {
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
@@ -112,16 +113,55 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie(utils.RefreshTokenName, refreshToken, 3*24*60*60, "/", "", false, true)
-	c.SetCookie(utils.AccessTokenName, accessToken, 24*60*60, "/", "", false, true)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     auth.RefreshTokenName,
+		Value:    refreshToken,
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   3 * 24 * 60 * 60,
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     auth.AccessTokenName,
+		Value:    accessToken,
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   24 * 60 * 60,
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
 	c.HTML(http.StatusOK, "login-success.html", gin.H{
 		"name": user.FirstName + " " + user.LastName,
 	})
 }
 
 func Logout(c *gin.Context) {
-	c.SetCookie(utils.RefreshTokenName, "", -1, "/", "", false, true)
-	c.SetCookie(utils.AccessTokenName, "", -1, "/", "", false, true)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     auth.RefreshTokenName,
+		Value:    "",
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   -1,
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     auth.AccessTokenName,
+		Value:    "",
+		Path:     "/",
+		Domain:   "localhost",
+		MaxAge:   -1,
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"message": "You have successfully logged out.",

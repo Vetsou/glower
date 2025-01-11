@@ -1,22 +1,6 @@
-package model
+package form
 
-import (
-	"errors"
-)
-
-type AddFlowerForm struct {
-	Name          string  `form:"name" binding:"required"`
-	Price         float32 `form:"price" binding:"required"`
-	Available     bool    `form:"available"`
-	Description   string  `form:"description"`
-	DiscountPrice float32 `form:"discount"`
-	Stock         uint    `form:"stock" binding:"required"`
-}
-
-type LoginUserForm struct {
-	Email    string `form:"email" binding:"required"`
-	Password string `form:"password" binding:"required"`
-}
+import "errors"
 
 type RegisterUserFrom struct {
 	FirstName       string `form:"first-name" binding:"required"`

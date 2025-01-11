@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"glower/input/form"
 	"glower/model"
 	"net/http"
 
@@ -27,7 +28,7 @@ func GetFlowers(c *gin.Context) {
 }
 
 func AddFlower(c *gin.Context) {
-	var formData model.AddFlowerForm
+	var formData form.AddFlowerForm
 	if err := c.ShouldBind(&formData); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,

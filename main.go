@@ -3,6 +3,7 @@ package main
 import (
 	"glower/initializers"
 	"glower/model"
+	"glower/routes"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,8 +15,8 @@ func init() {
 
 func main() {
 	e := gin.Default()
-	initializers.LoadHTMLTemplates(e)
-	initializers.RegisterServerRoutes(e)
+	initializers.InitHTMLTemplates(e)
+	routes.RegisterServiceRoutes(e)
 
 	e.Run()
 }

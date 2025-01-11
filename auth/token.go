@@ -1,4 +1,4 @@
-package utils
+package auth
 
 import (
 	"errors"
@@ -12,6 +12,7 @@ import (
 const (
 	RefreshTokenName = "refresh-token"
 	AccessTokenName  = "access-token"
+	DomainName       = "localhost"
 )
 
 var jwtSecret = []byte(os.Getenv("ACCESS_TOKEN_SECRET"))

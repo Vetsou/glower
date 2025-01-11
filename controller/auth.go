@@ -113,27 +113,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     auth.RefreshTokenName,
-		Value:    refreshToken,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   3 * 24 * 60 * 60,
-		Secure:   false,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     auth.AccessTokenName,
-		Value:    accessToken,
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   24 * 60 * 60,
-		Secure:   false,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
+	auth.SetCookies(c, &refreshToken, &accessToken)
 
 	c.HTML(http.StatusOK, "login-success.html", gin.H{
 		"name": user.FirstName + " " + user.LastName,
@@ -141,27 +121,7 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     auth.RefreshTokenName,
-		Value:    "",
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   -1,
-		Secure:   false,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     auth.AccessTokenName,
-		Value:    "",
-		Path:     "/",
-		Domain:   "localhost",
-		MaxAge:   -1,
-		Secure:   false,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
+	auth.CleanCookies(c)
 
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"message": "You have successfully logged out.",

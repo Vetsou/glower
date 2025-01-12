@@ -1,4 +1,4 @@
-package routes
+package public
 
 import (
 	"glower/controller"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerFlowers(e *gin.Engine) {
+func RegisterFlowers(e *gin.Engine) {
 	flowersGroup := e.Group("/flowers")
 
 	flowersGroup.GET("/", controller.GetFlowers)

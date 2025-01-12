@@ -1,4 +1,4 @@
-package routes
+package public
 
 import (
 	"glower/controller"
@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerAuth(e *gin.Engine) {
+func RegisterAuth(e *gin.Engine) {
 	authGroup := e.Group("/auth")
 
 	authGroup.POST("/signup", controller.RegisterUser)

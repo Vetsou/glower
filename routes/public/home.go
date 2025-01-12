@@ -1,4 +1,4 @@
-package routes
+package public
 
 import (
 	"glower/controller"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerHome(e *gin.Engine) {
+func RegisterHome(e *gin.Engine) {
 	homeGroup := e.Group("/")
 
 	homeGroup.GET("/", controller.GetHomePage)

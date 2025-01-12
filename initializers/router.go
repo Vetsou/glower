@@ -15,6 +15,5 @@ func RegisterServiceRoutes(e *gin.Engine) {
 }
 
 func RegisterPrivateRoutes(e *gin.Engine) {
-	reg := CreateMetricsRegistry()
-	private.RegisterMetrics(e, reg)
+	private.RegisterMetrics(e)
 }

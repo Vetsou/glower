@@ -47,7 +47,18 @@ func AddFlower(c *gin.Context) {
 
 	tx := model.DB.Begin()
 
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "Database error.",
+			})
+		}
+	}()
+
 	if err := tx.Create(&flower).Error; err != nil {
+		tx.Rollback()
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
 			"message": "Failed to add flower to the database.",
@@ -61,6 +72,7 @@ func AddFlower(c *gin.Context) {
 	}
 
 	if err := tx.Create(&inventory).Error; err != nil {
+		tx.Rollback()
 		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
 			"code":    http.StatusInternalServerError,
 			"message": "Failed to add inventory for the flower.",
@@ -68,7 +80,13 @@ func AddFlower(c *gin.Context) {
 		return
 	}
 
-	tx.Commit()
+	if err := tx.Commit().Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to commit changes.",
+		})
+		return
+	}
 
 	c.HTML(http.StatusOK, "stock-add.html", gin.H{
 		"ID":            flower.ID,

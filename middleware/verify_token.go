@@ -28,7 +28,17 @@ func VerifyAuthToken(c *gin.Context) {
 		return
 	}
 
-	c.Set("user", (*claims)["user"])
+	userData, err := auth.GetUserClaims(claims)
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Error getting token claims.",
+		})
+		c.Abort()
+		return
+	}
 
+	c.Set("id", userData.Id)
+	c.Set("user", userData.User)
 	c.Next()
 }

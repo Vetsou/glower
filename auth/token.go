@@ -2,8 +2,10 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"glower/model"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,13 +17,23 @@ const (
 	DomainName       = "localhost"
 )
 
-var jwtSecret = []byte(os.Getenv("ACCESS_TOKEN_SECRET"))
-var refreshSecret = []byte(os.Getenv("REFRESH_TOKEN_SECRET"))
+var (
+	jwtSecret     = []byte(os.Getenv("ACCESS_TOKEN_SECRET"))
+	refreshSecret = []byte(os.Getenv("REFRESH_TOKEN_SECRET"))
+)
+
+type UserTokenData struct {
+	Id   uint
+	User string
+}
 
 func CreateJWT(user model.User, email string) (string, error) {
 	claims := jwt.MapClaims{
-		"user": user.FirstName + " " + user.LastName,
-		"exp":  time.Now().Add(15 * time.Minute).Unix(),
+		"exp": time.Now().Add(15 * time.Minute).Unix(),
+		"data": map[string]string{
+			"id":   fmt.Sprintf("%d", user.ID),
+			"user": user.FirstName + " " + user.LastName,
+		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret)
@@ -58,4 +70,20 @@ func VerifyToken(tokenStr string) (*jwt.MapClaims, error) {
 	}
 
 	return &claims, nil
+}
+
+func GetUserClaims(claims *jwt.MapClaims) (UserTokenData, error) {
+	tokenData := (*claims)["data"].(map[string]interface{})
+
+	userId, err := strconv.ParseUint(tokenData["id"].(string), 10, 32)
+	if err != nil {
+		return UserTokenData{}, err
+	}
+
+	userData := UserTokenData{
+		Id:   uint(userId),
+		User: tokenData["user"].(string),
+	}
+
+	return userData, nil
 }

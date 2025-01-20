@@ -10,5 +10,7 @@ import (
 func RegisterCart(e *gin.Engine) {
 	flowersGroup := e.Group("/cart")
 
-	flowersGroup.POST("/", middleware.VerifyAuthToken, controller.AddFlowerToCart)
+	flowersGroup.GET("/", middleware.VerifyAuthToken, controller.GetCartItems)
+	flowersGroup.POST("/", middleware.VerifyAuthToken, controller.AddCartItem)
+	flowersGroup.DELETE("/:id", middleware.VerifyAuthToken, controller.RemoveCartItem)
 }

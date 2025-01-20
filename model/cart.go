@@ -11,7 +11,8 @@ type Cart struct {
 
 type CartItem struct {
 	gorm.Model
-	CartID   uint `gorm:"not null"`
-	FlowerID uint `gorm:"not null"`
-	Quantity uint `gorm:"not null;default:0"`
+	CartID   uint   `gorm:"not null"`
+	FlowerID uint   `gorm:"not null"`
+	Flower   Flower `gorm:"foreignKey:FlowerID"`
+	Quantity uint   `gorm:"not null;default:0"`
 }

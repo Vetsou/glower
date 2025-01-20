@@ -65,7 +65,59 @@ func addOrUpdateCartItem(tx *gorm.DB, cartID uint, flowerID uint) (model.CartIte
 	return cartItem, nil
 }
 
-func AddFlowerToCart(c *gin.Context) {
+func GetCartItems(c *gin.Context) {
+	tx := model.DB.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "Internal server error.",
+			})
+		}
+	}()
+
+	cart, err := getUserCart(c, tx)
+	if err != nil {
+		tx.Rollback()
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to retrieve user cart.",
+		})
+		return
+	}
+
+	var cartItems []model.CartItem
+	if err := tx.Preload("Flower").Where("cart_id = ?", cart.ID).Find(&cartItems).Error; err != nil {
+		tx.Rollback()
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to retrieve cart items.",
+		})
+		return
+	}
+
+	var totalPrice float32
+	for _, item := range cartItems {
+		totalPrice += float32(item.Quantity) * item.Flower.Price
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to commit transaction.",
+		})
+		return
+	}
+
+	c.HTML(http.StatusOK, "user-cart.html", gin.H{
+		"cartItems":  cartItems,
+		"totalPrice": totalPrice,
+	})
+}
+
+func AddCartItem(c *gin.Context) {
 	var request struct {
 		FlowerID uint `json:"flowerId"`
 	}
@@ -143,4 +195,67 @@ func AddFlowerToCart(c *gin.Context) {
 		"currCount":  cartItem.Quantity,
 		"totalPrice": float32(cartItem.Quantity) * flower.Price,
 	})
+}
+
+func RemoveCartItem(c *gin.Context) {
+	cartItemId := c.Param("id")
+
+	if cartItemId == "" {
+		c.HTML(http.StatusBadRequest, "error.html", gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "Cart item ID is required.",
+		})
+		return
+	}
+
+	tx := model.DB.Begin()
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "Internal server error.",
+			})
+		}
+	}()
+
+	cart, err := getUserCart(c, tx)
+	if err != nil {
+		tx.Rollback()
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to retrieve user cart.",
+		})
+		return
+	}
+
+	var cartItem model.CartItem
+	if err := tx.Where("id = ? AND cart_id = ?", cartItemId, cart.ID).First(&cartItem).Error; err != nil {
+		tx.Rollback()
+		c.HTML(http.StatusNotFound, "error.html", gin.H{
+			"code":    http.StatusNotFound,
+			"message": "Cart item not found.",
+		})
+		return
+	}
+
+	if err := tx.Delete(&cartItem).Error; err != nil {
+		tx.Rollback()
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to remove cart item.",
+		})
+		return
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "Failed to commit transaction.",
+		})
+		return
+	}
+
+	c.HTML(http.StatusOK, "cart-remove-success.html", nil)
 }

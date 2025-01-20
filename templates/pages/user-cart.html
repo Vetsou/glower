@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <header>
+    <title>User Cart</title>
+  </header>
+  <body>
+    <h2>Your Cart</h2>
+    {{ if .cartItems }}
+      <table border="1">
+        <thead>
+          <tr>
+            <th>Flower Name</th>
+            <th>Price</th>
+            <th>Quantity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{ range .cartItems }}
+          <tr>
+            <td>{{ .Flower.Name }}</td>
+            <td>${{ printf "%.2f" .Flower.Price }}</td>
+            <td>{{ .Quantity }}</td>
+          </tr>
+          {{ end }}
+        </tbody>
+      </table>
+      <h3>Total Price: ${{ printf "%.2f" .totalPrice }}</h3>
+    {{ else }}
+      <p>Your cart is empty.</p>
+    {{ end }}
+    <a href="/">Go to home page</a>
+  </body>
+</html>

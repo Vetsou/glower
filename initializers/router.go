@@ -12,6 +12,7 @@ func RegisterServiceRoutes(e *gin.Engine) {
 	public.RegisterFlowers(e)
 	public.RegisterUser(e)
 	public.RegisterAuth(e)
+	public.RegisterCart(e)
 }
 
 func RegisterPrivateRoutes(e *gin.Engine) {

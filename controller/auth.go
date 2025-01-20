@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"errors"
 	"glower/auth"
-	"glower/input/form"
 	"glower/model"
 	"net/http"
 
@@ -13,8 +13,44 @@ import (
 
 const minEntropyBits = 60
 
+type RegisterUserFrom struct {
+	FirstName       string `form:"first-name" binding:"required"`
+	LastName        string `form:"last-name" binding:"required"`
+	Email           string `form:"email" binding:"required"`
+	Password        string `form:"password" binding:"required"`
+	ConfirmPassword string `form:"confirm-password" binding:"required"`
+}
+
+func (r *RegisterUserFrom) validate() error {
+	if len(r.FirstName) > 50 {
+		return errors.New("first name cannot be longer than 50 characters")
+	}
+
+	if len(r.LastName) > 50 {
+		return errors.New("last name cannot be longer than 50 characters")
+	}
+
+	if len(r.Email) > 70 {
+		return errors.New("email cannot be longer than 70 characters")
+	}
+
+	if len(r.Password) > 60 {
+		return errors.New("password cannot be longer than 60 characters")
+	}
+
+	if len(r.ConfirmPassword) > 60 {
+		return errors.New("confirm password cannot be longer than 60 characters")
+	}
+
+	if r.Password != r.ConfirmPassword {
+		return errors.New("passwords must match")
+	}
+
+	return nil
+}
+
 func RegisterUser(c *gin.Context) {
-	var formData form.RegisterUserFrom
+	var formData RegisterUserFrom
 	if err := c.ShouldBind(&formData); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
@@ -23,7 +59,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	if err := formData.Validate(); err != nil {
+	if err := formData.validate(); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "Invalid form data: " + err.Error(),
@@ -69,8 +105,12 @@ func RegisterUser(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
-	var formData form.LoginUserForm
-	if err := c.ShouldBind(&formData); err != nil {
+	var request struct {
+		Email    string `form:"email" binding:"required"`
+		Password string `form:"password" binding:"required"`
+	}
+
+	if err := c.ShouldBind(&request); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "Invalid form data: " + err.Error(),
@@ -79,7 +119,7 @@ func Login(c *gin.Context) {
 	}
 
 	var user model.User
-	if err := model.DB.Where("email = ?", formData.Email).First(&user).Error; err != nil {
+	if err := model.DB.Where("email = ?", request.Email).First(&user).Error; err != nil {
 		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
 			"code":    http.StatusUnauthorized,
 			"message": "Invalid email or password.",
@@ -87,7 +127,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(formData.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(request.Password)); err != nil {
 		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
 			"code":    http.StatusUnauthorized,
 			"message": "Invalid email or password.",

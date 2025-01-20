@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"glower/input/form"
 	"glower/model"
 	"net/http"
 
@@ -28,8 +27,16 @@ func GetFlowers(c *gin.Context) {
 }
 
 func AddFlower(c *gin.Context) {
-	var formData form.AddFlowerForm
-	if err := c.ShouldBind(&formData); err != nil {
+	var request struct {
+		Name          string  `form:"name" binding:"required"`
+		Price         float32 `form:"price" binding:"required"`
+		Available     bool    `form:"available"`
+		Description   string  `form:"description"`
+		DiscountPrice float32 `form:"discount"`
+		Stock         uint    `form:"stock" binding:"required"`
+	}
+
+	if err := c.ShouldBind(&request); err != nil {
 		c.HTML(http.StatusBadRequest, "error.html", gin.H{
 			"code":    http.StatusBadRequest,
 			"message": "Invalid form data: " + err.Error(),
@@ -38,11 +45,11 @@ func AddFlower(c *gin.Context) {
 	}
 
 	flower := model.Flower{
-		Name:          formData.Name,
-		Price:         formData.Price,
-		Available:     formData.Available,
-		Description:   formData.Description,
-		DiscountPrice: formData.DiscountPrice,
+		Name:          request.Name,
+		Price:         request.Price,
+		Available:     request.Available,
+		Description:   request.Description,
+		DiscountPrice: request.DiscountPrice,
 	}
 
 	tx := model.DB.Begin()
@@ -68,7 +75,7 @@ func AddFlower(c *gin.Context) {
 
 	inventory := model.Inventory{
 		FlowerID: flower.ID,
-		Stock:    formData.Stock,
+		Stock:    request.Stock,
 	}
 
 	if err := tx.Create(&inventory).Error; err != nil {

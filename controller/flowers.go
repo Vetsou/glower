@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"glower/controller/internal"
 	"glower/model"
 	"net/http"
 
@@ -14,10 +15,7 @@ func GetFlowers(c *gin.Context) {
 	err := model.DB.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
 
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to load flowers. Please try again later.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to load flowers. Please try again later.")
 		return
 	}
 
@@ -37,10 +35,7 @@ func AddFlower(c *gin.Context) {
 	}
 
 	if err := c.ShouldBind(&request); err != nil {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "Invalid form data: " + err.Error(),
-		})
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
 		return
 	}
 
@@ -57,19 +52,13 @@ func AddFlower(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Database error.",
-			})
+			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
 		}
 	}()
 
 	if err := tx.Create(&flower).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to add flower to the database.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to the database.")
 		return
 	}
 
@@ -80,18 +69,12 @@ func AddFlower(c *gin.Context) {
 
 	if err := tx.Create(&inventory).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to add inventory for the flower.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add inventory for the flower.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to commit changes.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit changes.")
 		return
 	}
 
@@ -110,10 +93,7 @@ func RemoveFlower(c *gin.Context) {
 	id := c.Param("id")
 
 	if err := model.DB.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Error deleting flower from DB.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower from DB.")
 		return
 	}
 

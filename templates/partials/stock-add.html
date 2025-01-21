@@ -1,20 +1,28 @@
 <div class="flower-{{.ID}}">
-  <h3>{{.name}} -
-    {{if .discountPrice}}
-      <span style="text-decoration: line-through;">{{.price}}$</span>
-      <span> {{.discountPrice}}$</span>
+  <h3>{{.Name}} -
+    {{if .DiscountPrice}}
+      <span style="text-decoration: line-through;">{{.Price}}$</span>
+      <span> {{.DiscountPrice}}$</span>
     {{else}}
-      {{.price}}$
+      {{.Price}}$
     {{end}}
   </h3>
-  <p>Stock: {{.stock}}</p>
-  <p>Description: {{.description}}</p>
-  <p>Available: {{if .available}}Yes{{else}}No{{end}}</p>
-  <button 
-    hx-delete="/flowers/{{.ID}}" 
-    hx-target=".flower-{{.ID}}" 
+  <p>Stock: {{.Inventory.Stock}}</p>
+  <p>Description: {{.Description}}</p>
+  <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
+  <button
+    hx-post="/cart"
+    hx-target="#response-container"
     hx-swap="outerHTML"
-    hx-on="htmx:responseError: #err-response">
+    hx-vals='{"flowerId": {{.ID}}}'
+    hx-on="htmx:responseError: #response-container">
+      Add to Cart
+  </button>
+  <button 
+    hx-delete="/flowers/{{.ID}}"
+    hx-target=".flower-{{.ID}}"
+    hx-swap="outerHTML"
+    hx-on="htmx:responseError: #response-container">
       Delete
   </button>
 </div>

@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"glower/controller/internal"
 	"glower/model"
 	"net/http"
 
@@ -71,30 +72,21 @@ func GetCartItems(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Internal server error.",
-			})
+			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
 		}
 	}()
 
 	cart, err := getUserCart(c, tx)
 	if err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to retrieve user cart.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
 	var cartItems []model.CartItem
 	if err := tx.Preload("Flower").Where("cart_id = ?", cart.ID).Find(&cartItems).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to retrieve cart items.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve cart items.")
 		return
 	}
 
@@ -104,10 +96,7 @@ func GetCartItems(c *gin.Context) {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to commit transaction.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit transaction.")
 		return
 	}
 
@@ -119,14 +108,11 @@ func GetCartItems(c *gin.Context) {
 
 func AddCartItem(c *gin.Context) {
 	var request struct {
-		FlowerID uint `json:"flowerId"`
+		FlowerID uint `form:"flowerId"`
 	}
 
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "Invalid request body.",
-		})
+	if err := c.ShouldBind(&request); err != nil {
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid request body.")
 		return
 	}
 
@@ -135,10 +121,7 @@ func AddCartItem(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Internal server error.",
-			})
+			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
 		}
 	}()
 
@@ -146,54 +129,39 @@ func AddCartItem(c *gin.Context) {
 	err := tx.Model(&model.Flower{}).Preload("Inventory").Find(&flower, request.FlowerID).Error
 	if err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusNotFound, "error.html", gin.H{
-			"code":    http.StatusNotFound,
-			"message": "Flower not found",
-		})
+		internal.SetPartialError(c, http.StatusNotFound, "Flower not found.")
 		return
 	}
 
 	if !flower.Available {
 		tx.Rollback()
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "This flower in not available anymore.",
-		})
+		internal.SetPartialError(c, http.StatusBadRequest, "This flower in not available anymore.")
 		return
 	}
 
 	cart, err := getUserCart(c, tx)
 	if err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to retrieve user cart.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
 	cartItem, err := addOrUpdateCartItem(tx, cart.ID, flower.ID)
 	if err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to add flower to cart.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to cart.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to commit transaction.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit transaction.")
 		return
 	}
 
-	c.HTML(http.StatusOK, "add-to-cart-success.html", gin.H{
-		"name":       flower.Name,
-		"currCount":  cartItem.Quantity,
-		"totalPrice": float32(cartItem.Quantity) * flower.Price,
+	c.HTML(http.StatusOK, "success-alert.html", gin.H{
+		"message": fmt.Sprintf(
+			"Flower %s was added to your cart. You currently have %d %s in your cart.",
+			flower.Name, cartItem.Quantity, flower.Name),
 	})
 }
 
@@ -201,10 +169,7 @@ func RemoveCartItem(c *gin.Context) {
 	cartItemId := c.Param("id")
 
 	if cartItemId == "" {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "Cart item ID is required.",
-		})
+		internal.SetPartialError(c, http.StatusBadRequest, "Cart item ID is required.")
 		return
 	}
 
@@ -213,49 +178,36 @@ func RemoveCartItem(c *gin.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Internal server error.",
-			})
+			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
 		}
 	}()
 
 	cart, err := getUserCart(c, tx)
 	if err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to retrieve user cart.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
 	var cartItem model.CartItem
 	if err := tx.Where("id = ? AND cart_id = ?", cartItemId, cart.ID).First(&cartItem).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusNotFound, "error.html", gin.H{
-			"code":    http.StatusNotFound,
-			"message": "Cart item not found.",
-		})
+		internal.SetPartialError(c, http.StatusNotFound, "Cart item not found.")
 		return
 	}
 
 	if err := tx.Delete(&cartItem).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to remove cart item.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to remove cart item.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to commit transaction.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit transaction.")
 		return
 	}
 
-	c.HTML(http.StatusOK, "cart-remove-success.html", nil)
+	c.HTML(http.StatusOK, "success-alert.html", gin.H{
+		"message": "Item was removed from your cart.",
+	})
 }

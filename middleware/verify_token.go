@@ -10,9 +10,9 @@ import (
 func VerifyAuthToken(c *gin.Context) {
 	tokenStr, err := c.Cookie(auth.AccessTokenName)
 	if err != nil {
-		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
+		c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
 			"code":    http.StatusUnauthorized,
-			"message": "Access token is missing.",
+			"message": "User is not logged in.",
 		})
 		c.Abort()
 		return
@@ -20,9 +20,9 @@ func VerifyAuthToken(c *gin.Context) {
 
 	claims, err := auth.VerifyToken(tokenStr)
 	if err != nil {
-		c.HTML(http.StatusUnauthorized, "error.html", gin.H{
+		c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
 			"code":    http.StatusUnauthorized,
-			"message": "Invalid access token.",
+			"message": "Invalid user credentials.",
 		})
 		c.Abort()
 		return
@@ -30,9 +30,9 @@ func VerifyAuthToken(c *gin.Context) {
 
 	userData, err := auth.GetUserClaims(claims)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+		c.HTML(http.StatusInternalServerError, "error-page.html", gin.H{
 			"code":    http.StatusInternalServerError,
-			"message": "Error getting token claims.",
+			"message": "Error getting user data.",
 		})
 		c.Abort()
 		return

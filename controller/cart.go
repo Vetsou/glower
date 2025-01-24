@@ -4,7 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"glower/controller/internal"
-	"glower/model"
+	"glower/database"
+	"glower/database/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -67,7 +68,7 @@ func addOrUpdateCartItem(tx *gorm.DB, cartID uint, flowerID uint) (model.CartIte
 }
 
 func GetCartItems(c *gin.Context) {
-	tx := model.DB.Begin()
+	tx := database.Handle.Begin()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -116,7 +117,7 @@ func AddCartItem(c *gin.Context) {
 		return
 	}
 
-	tx := model.DB.Begin()
+	tx := database.Handle.Begin()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -173,7 +174,7 @@ func RemoveCartItem(c *gin.Context) {
 		return
 	}
 
-	tx := model.DB.Begin()
+	tx := database.Handle.Begin()
 
 	defer func() {
 		if r := recover(); r != nil {

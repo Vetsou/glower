@@ -2,7 +2,8 @@ package controller
 
 import (
 	"glower/controller/internal"
-	"glower/model"
+	"glower/database"
+	"glower/database/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 func GetFlowers(c *gin.Context) {
 	var flowers []model.Flower
 
-	err := model.DB.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
+	err := database.Handle.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
 
 	if err != nil {
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to load flowers. Please try again later.")
@@ -47,7 +48,7 @@ func AddFlower(c *gin.Context) {
 		DiscountPrice: request.DiscountPrice,
 	}
 
-	tx := model.DB.Begin()
+	tx := database.Handle.Begin()
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -92,7 +93,7 @@ func AddFlower(c *gin.Context) {
 func RemoveFlower(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := model.DB.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
+	if err := database.Handle.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
 		internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower from DB.")
 		return
 	}

@@ -1,8 +1,8 @@
 package main
 
 import (
+	"glower/database"
 	"glower/initializers"
-	"glower/model"
 	"log"
 	"os"
 
@@ -11,7 +11,7 @@ import (
 
 func init() {
 	initializers.LoadEnvVariables()
-	model.InitDatabase()
+	database.Init()
 }
 
 func main() {

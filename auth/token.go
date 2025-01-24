@@ -3,7 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"glower/model"
+	"glower/database/model"
 	"os"
 	"strconv"
 	"time"

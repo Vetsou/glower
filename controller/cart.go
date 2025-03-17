@@ -1,71 +1,15 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	"glower/controller/internal"
 	"glower/database"
 	"glower/database/model"
+	"glower/database/query"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
-
-func getUserCart(c *gin.Context, tx *gorm.DB) (model.Cart, error) {
-	userId := c.GetUint("id")
-	if userId == 0 {
-		return model.Cart{}, errors.New("incorrect user id")
-	}
-
-	var cart model.Cart
-	if err := tx.Where("user_id = ?", userId).First(&cart).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			cart = model.Cart{
-				UserID: userId,
-				Items:  []model.CartItem{},
-			}
-
-			if err := tx.Create(&cart).Error; err != nil {
-				return model.Cart{}, fmt.Errorf("failed to create cart: %w", err)
-			}
-		} else {
-			return model.Cart{}, fmt.Errorf("failed to fetch cart: %w", err)
-		}
-	}
-
-	return cart, nil
-}
-
-func addOrUpdateCartItem(tx *gorm.DB, cartID uint, flowerID uint) (model.CartItem, error) {
-	var cartItem model.CartItem
-	err := tx.Model(&model.CartItem{}).
-		Where("cart_id = ? AND flower_id = ?", cartID, flowerID).
-		First(&cartItem).Error
-
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			cartItem = model.CartItem{
-				CartID:   cartID,
-				FlowerID: flowerID,
-				Quantity: 1,
-			}
-
-			if err := tx.Create(&cartItem).Error; err != nil {
-				return model.CartItem{}, fmt.Errorf("failed to create cart item: %w", err)
-			}
-		} else {
-			return model.CartItem{}, fmt.Errorf("failed to query cart item: %w", err)
-		}
-	} else {
-		cartItem.Quantity++
-		if err := tx.Save(&cartItem).Error; err != nil {
-			return model.CartItem{}, fmt.Errorf("failed to update cart item: %w", err)
-		}
-	}
-
-	return cartItem, nil
-}
 
 func GetCartItems(c *gin.Context) {
 	tx := database.Handle.Begin()
@@ -77,7 +21,7 @@ func GetCartItems(c *gin.Context) {
 		}
 	}()
 
-	cart, err := getUserCart(c, tx)
+	cart, err := query.GetUserCart(c.GetUint("id"), tx)
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
@@ -140,14 +84,14 @@ func AddCartItem(c *gin.Context) {
 		return
 	}
 
-	cart, err := getUserCart(c, tx)
+	cart, err := query.GetUserCart(c.GetUint("id"), tx)
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
-	cartItem, err := addOrUpdateCartItem(tx, cart.ID, flower.ID)
+	cartItem, err := query.AddOrUpdateCartItem(cart.ID, flower.ID, tx)
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to cart.")
@@ -183,7 +127,7 @@ func RemoveCartItem(c *gin.Context) {
 		}
 	}()
 
-	cart, err := getUserCart(c, tx)
+	cart, err := query.GetUserCart(c.GetUint("id"), tx)
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")

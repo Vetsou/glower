@@ -13,13 +13,7 @@ import (
 
 func GetCartItems(c *gin.Context) {
 	tx := database.Handle.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
-		}
-	}()
+	defer internal.HandlePanic(c, tx)
 
 	cart, err := query.GetUserCart(c.GetUint("id"), tx)
 	if err != nil {
@@ -62,13 +56,7 @@ func AddCartItem(c *gin.Context) {
 	}
 
 	tx := database.Handle.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
-		}
-	}()
+	defer internal.HandlePanic(c, tx)
 
 	var flower model.Flower
 	err := tx.Model(&model.Flower{}).Preload("Inventory").Find(&flower, request.FlowerID).Error
@@ -119,13 +107,7 @@ func RemoveCartItem(c *gin.Context) {
 	}
 
 	tx := database.Handle.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
-		}
-	}()
+	defer internal.HandlePanic(c, tx)
 
 	cart, err := query.GetUserCart(c.GetUint("id"), tx)
 	if err != nil {

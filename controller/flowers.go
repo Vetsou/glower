@@ -49,13 +49,7 @@ func AddFlower(c *gin.Context) {
 	}
 
 	tx := database.Handle.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			internal.SetPartialError(c, http.StatusInternalServerError, "Internal server error.")
-		}
-	}()
+	defer internal.HandlePanic(c, tx)
 
 	if err := tx.Create(&flower).Error; err != nil {
 		tx.Rollback()

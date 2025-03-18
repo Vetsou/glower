@@ -6,13 +6,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	RefreshTokenTime = 3 * 24 * 60 * 60 // 3 Days
+	AccessTokenTime  = 12 * 60 * 60     // 12 hours
+)
+
 func SetCookies(c *gin.Context, refreshToken *string, accessToken *string) {
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     RefreshTokenName,
 		Value:    *refreshToken,
 		Path:     "/",
 		Domain:   DomainName,
-		MaxAge:   3 * 24 * 60 * 60,
+		MaxAge:   RefreshTokenTime,
 		Secure:   false,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
@@ -23,7 +28,7 @@ func SetCookies(c *gin.Context, refreshToken *string, accessToken *string) {
 		Value:    *accessToken,
 		Path:     "/",
 		Domain:   DomainName,
-		MaxAge:   24 * 60 * 60,
+		MaxAge:   AccessTokenTime,
 		Secure:   false,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,

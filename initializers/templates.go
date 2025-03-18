@@ -9,9 +9,10 @@ import (
 
 func InitHTMLTemplates(e *gin.Engine) {
 	patterns := []string{
-		"templates/pages/*",
+		"templates/pages/index.html",
 		"templates/pages/user/*",
 		"templates/pages/shop/*",
+		"templates/pages/error/*",
 
 		"templates/partials/*",
 	}

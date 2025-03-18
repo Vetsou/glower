@@ -1,15 +1,15 @@
 <div class="flower-{{.ID}}">
-  <h3>{{.Name}} -
-    {{if .DiscountPrice}}
-      <span style="text-decoration: line-through;">{{.Price}}$</span>
-      <span> {{.DiscountPrice}}$</span>
+  <h3>{{.name}} -
+    {{if .discountPrice}}
+      <span style="text-decoration: line-through;">{{.price}}$</span>
+      <span> {{.discountPrice}}$</span>
     {{else}}
-      {{.Price}}$
+      {{.price}}$
     {{end}}
   </h3>
-  <p>Stock: {{.Inventory.Stock}}</p>
-  <p>Description: {{.Description}}</p>
-  <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
+  <p>Stock: {{.stock}}</p>
+  <p>Description: {{.description}}</p>
+  <p>Available: {{if .available}}Yes{{else}}No{{end}}</p>
   <button
     hx-post="/cart"
     hx-target="#response-container"

@@ -15,7 +15,7 @@
     hx-post="/flowers"
     hx-target="#flower-products"
     hx-swap="beforeend"
-    hx-on="htmx:responseError: #add-err-response"
+    hx-on="htmx:responseError: #response-container"
   >
     <label for="fname">Flower name</label>
     <input id="fname" name="name" placeholder="Enter flower name..." required />
@@ -38,7 +38,7 @@
     <button>Add new flower</button>
   </form>
 
-  <div id="err-response" style="color: red; background-color: #333;"></div>
+  <div id="response-container"></div>
 
   <div id="flower-products">
     {{range .flowers}}
@@ -54,11 +54,19 @@
         <p>Stock: {{.Inventory.Stock}}</p>
         <p>Description: {{.Description}}</p>
         <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
+        <button
+          hx-post="/cart"
+          hx-target="#response-container"
+          hx-swap="outerHTML"
+          hx-vals='{"flowerId": {{.ID}}}'
+          hx-on="htmx:responseError: #response-container">
+            Add to Cart
+        </button>
         <button 
           hx-delete="/flowers/{{.ID}}"
           hx-target=".flower-{{.ID}}"
           hx-swap="outerHTML"
-          hx-on="htmx:responseError: #err-response">
+          hx-on="htmx:responseError: #response-container">
             Delete
         </button>
       </div>

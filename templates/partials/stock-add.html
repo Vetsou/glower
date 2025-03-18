@@ -10,11 +10,19 @@
   <p>Stock: {{.stock}}</p>
   <p>Description: {{.description}}</p>
   <p>Available: {{if .available}}Yes{{else}}No{{end}}</p>
-  <button 
-    hx-delete="/flowers/{{.ID}}" 
-    hx-target=".flower-{{.ID}}" 
+  <button
+    hx-post="/cart"
+    hx-target="#response-container"
     hx-swap="outerHTML"
-    hx-on="htmx:responseError: #err-response">
+    hx-vals='{"flowerId": {{.ID}}}'
+    hx-on="htmx:responseError: #response-container">
+      Add to Cart
+  </button>
+  <button 
+    hx-delete="/flowers/{{.ID}}"
+    hx-target=".flower-{{.ID}}"
+    hx-swap="outerHTML"
+    hx-on="htmx:responseError: #response-container">
       Delete
   </button>
 </div>

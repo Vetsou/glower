@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"glower/input/form"
-	"glower/model"
+	"glower/controller/internal"
+	"glower/database"
+	"glower/database/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,13 +13,10 @@ import (
 func GetFlowers(c *gin.Context) {
 	var flowers []model.Flower
 
-	err := model.DB.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
+	err := database.Handle.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
 
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to load flowers. Please try again later.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to load flowers. Please try again later.")
 		return
 	}
 
@@ -28,63 +26,50 @@ func GetFlowers(c *gin.Context) {
 }
 
 func AddFlower(c *gin.Context) {
-	var formData form.AddFlowerForm
-	if err := c.ShouldBind(&formData); err != nil {
-		c.HTML(http.StatusBadRequest, "error.html", gin.H{
-			"code":    http.StatusBadRequest,
-			"message": "Invalid form data: " + err.Error(),
-		})
+	var request struct {
+		Name          string  `form:"name" binding:"required"`
+		Price         float32 `form:"price" binding:"required"`
+		Available     bool    `form:"available"`
+		Description   string  `form:"description"`
+		DiscountPrice float32 `form:"discount"`
+		Stock         uint    `form:"stock" binding:"required"`
+	}
+
+	if err := c.ShouldBind(&request); err != nil {
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
 		return
 	}
 
 	flower := model.Flower{
-		Name:          formData.Name,
-		Price:         formData.Price,
-		Available:     formData.Available,
-		Description:   formData.Description,
-		DiscountPrice: formData.DiscountPrice,
+		Name:          request.Name,
+		Price:         request.Price,
+		Available:     request.Available,
+		Description:   request.Description,
+		DiscountPrice: request.DiscountPrice,
 	}
 
-	tx := model.DB.Begin()
-
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"code":    http.StatusInternalServerError,
-				"message": "Database error.",
-			})
-		}
-	}()
+	tx := database.Handle.Begin()
+	defer internal.HandlePanic(c, tx)
 
 	if err := tx.Create(&flower).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to add flower to the database.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to the database.")
 		return
 	}
 
 	inventory := model.Inventory{
 		FlowerID: flower.ID,
-		Stock:    formData.Stock,
+		Stock:    request.Stock,
 	}
 
 	if err := tx.Create(&inventory).Error; err != nil {
 		tx.Rollback()
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to add inventory for the flower.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add inventory for the flower.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Failed to commit changes.",
-		})
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit changes.")
 		return
 	}
 
@@ -102,11 +87,8 @@ func AddFlower(c *gin.Context) {
 func RemoveFlower(c *gin.Context) {
 	id := c.Param("id")
 
-	if err := model.DB.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
-		c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Error deleting flower from DB.",
-		})
+	if err := database.Handle.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
+		internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower from DB.")
 		return
 	}
 

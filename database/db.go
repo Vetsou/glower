@@ -1,6 +1,7 @@
-package model
+package database
 
 import (
+	"glower/database/model"
 	"log"
 	"os"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
+var Handle *gorm.DB
 
 func setupDatabase() {
 	dsn := os.Getenv("DB_DSN")
@@ -32,13 +33,13 @@ func setupDatabase() {
 	conn.SetMaxIdleConns(10)
 	conn.SetConnMaxLifetime(5 * time.Minute)
 
-	DB = db
+	Handle = db
 }
 
-func InitDatabase() {
+func Init() {
 	setupDatabase()
 
-	err := DB.AutoMigrate(&Flower{}, &Inventory{}, &User{}, &Cart{}, &CartItem{})
+	err := Handle.AutoMigrate(&model.Flower{}, &model.Inventory{}, &model.User{}, &model.Cart{}, &model.CartItem{})
 	if err != nil {
 		log.Fatal("Error during DB auto migrate: " + err.Error())
 	}

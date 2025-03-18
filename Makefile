@@ -13,7 +13,7 @@ run:
 	go run main.go
 
 db:
-	cd docker && docker-compose -f glower-db.yaml up
+	cd build && docker-compose -f glower-db.yaml up
 
 clean-db:
-	cd docker && docker-compose -f glower-db.yaml down -v
+	cd build && docker-compose -f glower-db.yaml down -v

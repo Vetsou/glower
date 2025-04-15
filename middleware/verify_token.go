@@ -7,34 +7,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func renderResponse(c *gin.Context, code int, msg string) {
+	isHTMX := c.Request.Header.Get("HX-Request") == "true"
+
+	if isHTMX {
+		c.HTML(code, "error-alert.html", gin.H{"errorMessage": msg})
+	} else {
+		c.HTML(code, "error-page.html", gin.H{
+			"code":    code,
+			"message": msg,
+		})
+	}
+	c.Abort()
+}
+
 func VerifyAuthToken(c *gin.Context) {
 	tokenStr, err := c.Cookie(auth.AccessTokenName)
 	if err != nil {
-		c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
-			"code":    http.StatusUnauthorized,
-			"message": "User is not logged in.",
-		})
-		c.Abort()
+		renderResponse(c, http.StatusUnauthorized, "User is not logged in.")
 		return
 	}
 
 	claims, err := auth.VerifyToken(tokenStr)
 	if err != nil {
-		c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
-			"code":    http.StatusUnauthorized,
-			"message": "Invalid user credentials.",
-		})
-		c.Abort()
+		renderResponse(c, http.StatusUnauthorized, "Invalid user credentials.")
 		return
 	}
 
 	userData, err := auth.GetUserClaims(claims)
 	if err != nil {
-		c.HTML(http.StatusInternalServerError, "error-page.html", gin.H{
-			"code":    http.StatusInternalServerError,
-			"message": "Error getting user data.",
-		})
-		c.Abort()
+		renderResponse(c, http.StatusInternalServerError, "Error getting user data.")
 		return
 	}
 

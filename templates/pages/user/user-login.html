@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <header>
-    <title>User Login</title>
-    <script 
-      src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
-      integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
-      crossorigin="anonymous">
-    </script>
-  </header>
-  <body>
+<head>
+  <title>User Login</title>
+  <script 
+    src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
+    integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
+    crossorigin="anonymous">
+  </script>
+  <script
+    src="https://unpkg.com/htmx-ext-response-targets@2.0.3/dist/response-targets.min.js"
+    integrity="sha384-T41oglUPvXLGBVyRdZsVRxNWnOOqCynaPubjUVjxhsjFTKrFJGEMm3/0KGmNQ+Pg"
+    crossorigin="anonymous">
+  </script>
+</head>
+
+<body hx-ext="response-targets">
   <form
     hx-post="/auth/login"
     hx-target="#login-res"
-    hx-swap="beforeend"
-    hx-on="htmx:responseError: #login-err"
+    hx-swap="innerHTML"
+    hx-target-error="#login-err"
   >
     <label for="email">Email</label>
     <input id="email" name="email" type="email" placeholder="Enter your email..." required />
@@ -23,8 +29,8 @@
 
     <button>Login</button>
   </form>
-  
+
   <div id="login-res"></div>
   <div id="login-err"></div>
-  </body>
+</body>
 </html>

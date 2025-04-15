@@ -1,19 +1,25 @@
 <!DOCTYPE html>
 <html>
-  <header>
-    <title>User Register</title>
-    <script 
-      src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
-      integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
-      crossorigin="anonymous">
-    </script>
-  </header>
-  <body>
+<head>
+  <title>User Register</title>
+  <script 
+    src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
+    integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
+    crossorigin="anonymous">
+  </script>
+  <script 
+    src="https://unpkg.com/htmx-ext-response-targets@2.0.3/dist/response-targets.min.js"
+    integrity="sha384-T41oglUPvXLGBVyRdZsVRxNWnOOqCynaPubjUVjxhsjFTKrFJGEMm3/0KGmNQ+Pg"
+    crossorigin="anonymous">
+  </script>
+</head>
+
+<body hx-ext="response-targets">
   <form
     hx-post="/auth/signup"
     hx-target="#register-res"
-    hx-swap="beforeend"
-    hx-on="htmx:responseError: #register-err"
+    hx-swap="innerHTML"
+    hx-target-error="#register-err"
   >
     <label for="fname">First Name</label>
     <input id="fname" name="first-name" placeholder="Enter first name..." required />
@@ -35,5 +41,5 @@
   
   <div id="register-res"></div>
   <div id="register-err"></div>
-  </body>
+</body>
 </html>

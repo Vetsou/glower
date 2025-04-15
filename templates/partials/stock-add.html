@@ -10,8 +10,9 @@
   <p>Stock: {{.stock}}</p>
   <p>Description: {{.description}}</p>
   <p>Available: {{if .available}}Yes{{else}}No{{end}}</p>
+
   <button
-    hx-post="/cart"
+    hx-post="/cart/"
     hx-target="#response-container"
     hx-swap="outerHTML"
     hx-vals='{"flowerId": {{.ID}}}'

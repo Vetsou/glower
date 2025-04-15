@@ -2,20 +2,33 @@
 <html>
 <head>
   <title>Product List</title>
-  <script 
+  <script
     src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.js" 
     integrity="sha384-oeUn82QNXPuVkGCkcrInrS1twIxKhkZiFfr2TdiuObZ3n3yIeMiqcRzkIcguaof1"
     crossorigin="anonymous">
   </script>
+
+  <script
+    src="https://unpkg.com/htmx-ext-response-targets@2.0.3/dist/response-targets.min.js"
+    integrity="sha384-T41oglUPvXLGBVyRdZsVRxNWnOOqCynaPubjUVjxhsjFTKrFJGEMm3/0KGmNQ+Pg"
+    crossorigin="anonymous">
+  </script>
+
+  <script>
+    document.addEventListener('htmx:beforeSwap', (evt) => {
+      document.getElementById('info-container').innerHTML = '';
+    });
+  </script>
 </head>
-<body>
+
+<body hx-ext="response-targets">
   <h1>Here is a list of our products!</h1>
   <a href="/">Go to home page</a>
   <form
-    hx-post="/flowers"
+    hx-post="/flowers/"
     hx-target="#flower-products"
     hx-swap="beforeend"
-    hx-on="htmx:responseError: #response-container"
+    hx-target-error="#info-container"
   >
     <label for="fname">Flower name</label>
     <input id="fname" name="name" placeholder="Enter flower name..." required />
@@ -38,7 +51,7 @@
     <button>Add new flower</button>
   </form>
 
-  <div id="response-container"></div>
+  <div id="info-container"></div>
 
   <div id="flower-products">
     {{range .flowers}}
@@ -55,18 +68,18 @@
         <p>Description: {{.Description}}</p>
         <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
         <button
-          hx-post="/cart"
-          hx-target="#response-container"
-          hx-swap="outerHTML"
+          hx-post="/cart/"
+          hx-target="#info-container"
+          hx-swap="innerHTML"
           hx-vals='{"flowerId": {{.ID}}}'
-          hx-on="htmx:responseError: #response-container">
+          hx-target-error="#info-container">
             Add to Cart
         </button>
         <button 
           hx-delete="/flowers/{{.ID}}"
           hx-target=".flower-{{.ID}}"
-          hx-swap="outerHTML"
-          hx-on="htmx:responseError: #response-container">
+          hx-swap="innerHTML"
+          hx-target-error="#info-container">
             Delete
         </button>
       </div>

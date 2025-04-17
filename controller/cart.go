@@ -13,7 +13,7 @@ import (
 func GetCartItems(c *gin.Context) {
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
-	repo := repository.NewCartRepository(tx)
+	repo := repository.NewCartRepo(tx)
 
 	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
@@ -57,7 +57,7 @@ func AddCartItem(c *gin.Context) {
 
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
-	repo := repository.NewCartRepository(tx)
+	repo := repository.NewCartRepo(tx)
 
 	flower, err := repo.GetFlowerByID(request.FlowerID)
 	if err != nil {
@@ -108,7 +108,7 @@ func RemoveCartItem(c *gin.Context) {
 
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
-	repo := repository.NewCartRepository(tx)
+	repo := repository.NewCartRepo(tx)
 
 	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {

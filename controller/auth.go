@@ -6,6 +6,7 @@ import (
 	"glower/controller/internal"
 	"glower/database"
 	"glower/database/model"
+	"glower/database/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -82,7 +83,8 @@ func RegisterUser(c *gin.Context) {
 		PasswordHash: hashedPass,
 	}
 
-	if err := database.Handle.Create(&user).Error; err != nil {
+	repo := repository.NewAuthRepo(database.Handle)
+	if err := repo.InsertUser(user); err != nil {
 		internal.SetPartialError(c, http.StatusInternalServerError, "Error inserting user to database.")
 		return
 	}
@@ -103,8 +105,9 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	var user model.User
-	if err := database.Handle.Where("email = ?", request.Email).First(&user).Error; err != nil {
+	repo := repository.NewAuthRepo(database.Handle)
+	user, err := repo.GetUser(request.Email)
+	if err != nil {
 		internal.SetPartialError(c, http.StatusUnauthorized, "Invalid email or password.")
 		return
 	}

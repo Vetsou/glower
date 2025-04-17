@@ -20,7 +20,7 @@ type cartRepo struct {
 	db *gorm.DB
 }
 
-func NewCartRepository(tx *gorm.DB) CartRepository {
+func NewCartRepo(tx *gorm.DB) CartRepository {
 	return &cartRepo{db: tx}
 }
 

@@ -4,17 +4,16 @@ import (
 	"glower/controller/internal"
 	"glower/database"
 	"glower/database/model"
+	"glower/database/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm/clause"
 )
 
 func GetFlowers(c *gin.Context) {
-	var flowers []model.Flower
+	repo := repository.NewStockRepo(database.Handle)
 
-	err := database.Handle.Model(&model.Flower{}).Preload("Inventory").Find(&flowers).Error
-
+	flowers, err := repo.GetFlowers()
 	if err != nil {
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to load flowers. Please try again later.")
 		return
@@ -50,21 +49,11 @@ func AddFlower(c *gin.Context) {
 
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
+	repo := repository.NewStockRepo(tx)
 
-	if err := tx.Create(&flower).Error; err != nil {
+	if err := repo.AddFlower(flower, request.Stock); err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to the database.")
-		return
-	}
-
-	inventory := model.Inventory{
-		FlowerID: flower.ID,
-		Stock:    request.Stock,
-	}
-
-	if err := tx.Create(&inventory).Error; err != nil {
-		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add inventory for the flower.")
 		return
 	}
 
@@ -80,17 +69,17 @@ func AddFlower(c *gin.Context) {
 		"available":     flower.Available,
 		"description":   flower.Description,
 		"discountPrice": flower.DiscountPrice,
-		"stock":         inventory.Stock,
+		"stock":         request.Stock,
 	})
 }
 
 func RemoveFlower(c *gin.Context) {
-	id := c.Param("id")
+	repo := repository.NewStockRepo(database.Handle)
 
-	if err := database.Handle.Select(clause.Associations).Delete(&model.Flower{}, id).Error; err != nil {
+	if err := repo.RemoveFlower(c.Param("id")); err != nil {
 		internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower from DB.")
 		return
 	}
 
-	c.Status(200)
+	c.Status(http.StatusOK)
 }

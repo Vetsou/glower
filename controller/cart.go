@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"glower/controller/internal"
 	"glower/database"
-	"glower/database/model"
-	"glower/database/query"
+	"glower/database/repository"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,16 +13,17 @@ import (
 func GetCartItems(c *gin.Context) {
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
+	repo := repository.NewCartRepo(tx)
 
-	cart, err := query.GetUserCart(c.GetUint("id"), tx)
+	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
-	var cartItems []model.CartItem
-	if err := tx.Preload("Flower").Where("cart_id = ?", cart.ID).Find(&cartItems).Error; err != nil {
+	cartItems, err := repo.GetCartItems(cart.ID)
+	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve cart items.")
 		return
@@ -57,9 +57,9 @@ func AddCartItem(c *gin.Context) {
 
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
+	repo := repository.NewCartRepo(tx)
 
-	var flower model.Flower
-	err := tx.Model(&model.Flower{}).Preload("Inventory").Find(&flower, request.FlowerID).Error
+	flower, err := repo.GetFlowerByID(request.FlowerID)
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusNotFound, "Flower not found.")
@@ -72,14 +72,14 @@ func AddCartItem(c *gin.Context) {
 		return
 	}
 
-	cart, err := query.GetUserCart(c.GetUint("id"), tx)
+	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
-	cartItem, err := query.AddOrUpdateCartItem(cart.ID, flower.ID, tx)
+	cartItem, err := repo.AddOrUpdateCartItem(cart.ID, flower.ID)
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to cart.")
@@ -108,22 +108,16 @@ func RemoveCartItem(c *gin.Context) {
 
 	tx := database.Handle.Begin()
 	defer internal.HandlePanic(c, tx)
+	repo := repository.NewCartRepo(tx)
 
-	cart, err := query.GetUserCart(c.GetUint("id"), tx)
+	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
 		return
 	}
 
-	var cartItem model.CartItem
-	if err := tx.Where("id = ? AND cart_id = ?", cartItemId, cart.ID).First(&cartItem).Error; err != nil {
-		tx.Rollback()
-		internal.SetPartialError(c, http.StatusNotFound, "Cart item not found.")
-		return
-	}
-
-	if err := tx.Delete(&cartItem).Error; err != nil {
+	if err := repo.RemoveCartItem(cart.ID, cartItemId); err != nil {
 		tx.Rollback()
 		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to remove cart item.")
 		return

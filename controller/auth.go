@@ -55,7 +55,7 @@ func (r *registerUserFrom) validate() error {
 func RegisterUser(c *gin.Context) {
 	var formData registerUserFrom
 	if err := c.ShouldBind(&formData); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
 		return
 	}
 
@@ -85,7 +85,7 @@ func RegisterUser(c *gin.Context) {
 
 	repo := repository.NewAuthRepo(database.Handle)
 	if err := repo.InsertUser(user); err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Error inserting user to database.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Cannot register user. Please try again later.")
 		return
 	}
 
@@ -101,7 +101,7 @@ func Login(c *gin.Context) {
 	}
 
 	if err := c.ShouldBind(&request); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
 		return
 	}
 
@@ -119,13 +119,13 @@ func Login(c *gin.Context) {
 
 	accessToken, err := auth.CreateJWT(user, user.Email)
 	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to generate token.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
 		return
 	}
 
 	refreshToken, err := auth.CreateRefreshToken(user)
 	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to generate token.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
 		return
 	}
 

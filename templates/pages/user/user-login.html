@@ -17,9 +17,9 @@
 <body hx-ext="response-targets">
   <form
     hx-post="/auth/login"
-    hx-target="#login-res"
+    hx-target="#login-info"
     hx-swap="innerHTML"
-    hx-target-error="#login-err"
+    hx-target-error="#login-info"
   >
     <label for="email">Email</label>
     <input id="email" name="email" type="email" placeholder="Enter your email..." required />
@@ -30,7 +30,6 @@
     <button>Login</button>
   </form>
 
-  <div id="login-res"></div>
-  <div id="login-err"></div>
+  <div id="login-info"></div>
 </body>
 </html>

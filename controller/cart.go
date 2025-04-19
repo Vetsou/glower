@@ -18,14 +18,14 @@ func GetCartItems(c *gin.Context) {
 	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load your cart.")
 		return
 	}
 
 	cartItems, err := repo.GetCartItems(cart.ID)
 	if err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve cart items.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load your cart items.")
 		return
 	}
 
@@ -35,7 +35,7 @@ func GetCartItems(c *gin.Context) {
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit transaction.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "We couldn't save your changes. Please try again.")
 		return
 	}
 
@@ -47,11 +47,11 @@ func GetCartItems(c *gin.Context) {
 
 func AddCartItem(c *gin.Context) {
 	var request struct {
-		FlowerID uint `form:"flowerId"`
+		FlowerID uint `form:"flowerId" binding:"required"`
 	}
 
 	if err := c.ShouldBind(&request); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid request body.")
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid data provided.")
 		return
 	}
 
@@ -62,32 +62,32 @@ func AddCartItem(c *gin.Context) {
 	flower, err := repo.GetFlowerByID(request.FlowerID)
 	if err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusNotFound, "Flower not found.")
+		internal.SetPartialError(c, http.StatusNotFound, "The requested flower is unavailable.")
 		return
 	}
 
 	if !flower.Available {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusBadRequest, "This flower in not available anymore.")
+		internal.SetPartialError(c, http.StatusBadRequest, "This flower is no longer available for purchase.")
 		return
 	}
 
 	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load your cart.")
 		return
 	}
 
 	cartItem, err := repo.AddOrUpdateCartItem(cart.ID, flower.ID)
 	if err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to cart.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load your cart items.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit transaction.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "We couldn't save your changes. Please try again.")
 		return
 	}
 
@@ -99,9 +99,9 @@ func AddCartItem(c *gin.Context) {
 }
 
 func RemoveCartItem(c *gin.Context) {
-	cartItemId := c.Param("id")
+	cartItemId, exists := c.Params.Get("id")
 
-	if cartItemId == "" {
+	if !exists {
 		internal.SetPartialError(c, http.StatusBadRequest, "Cart item ID is required.")
 		return
 	}
@@ -113,18 +113,18 @@ func RemoveCartItem(c *gin.Context) {
 	cart, err := repo.GetUserCart(c.GetUint("id"))
 	if err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to retrieve user cart.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load your cart.")
 		return
 	}
 
 	if err := repo.RemoveCartItem(cart.ID, cartItemId); err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to remove cart item.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Unable to remove cart item.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit transaction.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "We couldn't save your changes. Please try again.")
 		return
 	}
 

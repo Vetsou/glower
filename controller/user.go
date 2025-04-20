@@ -7,10 +7,20 @@ import (
 )
 
 func GetRegisterPage(c *gin.Context) {
+	if _, exists := c.Get("user"); exists {
+		c.Redirect(http.StatusFound, "/user/profile")
+		return
+	}
+
 	c.HTML(http.StatusOK, "user-register.html", nil)
 }
 
 func GetLoginPage(c *gin.Context) {
+	if _, exists := c.Get("user"); exists {
+		c.Redirect(http.StatusFound, "/user/profile")
+		return
+	}
+
 	c.HTML(http.StatusOK, "user-login.html", nil)
 }
 

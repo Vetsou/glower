@@ -17,9 +17,9 @@
 <body hx-ext="response-targets">
   <form
     hx-post="/auth/signup"
-    hx-target="#register-res"
+    hx-target="#register-info"
     hx-swap="innerHTML"
-    hx-target-error="#register-err"
+    hx-target-error="#register-info"
   >
     <label for="fname">First Name</label>
     <input id="fname" name="first-name" placeholder="Enter first name..." required />
@@ -39,7 +39,7 @@
     <button>Register</button>
   </form>
   
-  <div id="register-res"></div>
-  <div id="register-err"></div>
+  <div id="register-info"></div>
+  <a href="/">Go to homepage</a>
 </body>
 </html>

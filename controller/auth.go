@@ -55,7 +55,7 @@ func (r *registerUserFrom) validate() error {
 func RegisterUser(c *gin.Context) {
 	var formData registerUserFrom
 	if err := c.ShouldBind(&formData); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
 		return
 	}
 
@@ -85,13 +85,12 @@ func RegisterUser(c *gin.Context) {
 
 	repo := repository.NewAuthRepo(database.Handle)
 	if err := repo.InsertUser(user); err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Error inserting user to database.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Cannot register user. Please try again later.")
 		return
 	}
 
-	c.HTML(http.StatusOK, "success-alert.html", gin.H{
-		"message": "User " + user.FirstName + " " + user.LastName + " registered successfully.",
-	})
+	c.Header("HX-Redirect", "/?oper=register")
+	c.Status(http.StatusOK)
 }
 
 func Login(c *gin.Context) {
@@ -101,7 +100,7 @@ func Login(c *gin.Context) {
 	}
 
 	if err := c.ShouldBind(&request); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
 		return
 	}
 
@@ -119,27 +118,24 @@ func Login(c *gin.Context) {
 
 	accessToken, err := auth.CreateJWT(user, user.Email)
 	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to generate token.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
 		return
 	}
 
 	refreshToken, err := auth.CreateRefreshToken(user)
 	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to generate token.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
 		return
 	}
 
 	auth.SetCookies(c, &refreshToken, &accessToken)
-
-	c.HTML(http.StatusOK, "success-alert.html", gin.H{
-		"message": "Logged in as " + user.FirstName + " " + user.LastName,
-	})
+	c.Header("HX-Redirect", "/?oper=login")
+	c.Status(http.StatusOK)
 }
 
 func Logout(c *gin.Context) {
 	auth.CleanCookies(c)
 
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"message": "You have successfully logged out.",
-	})
+	c.Header("HX-Redirect", "/?oper=logout")
+	c.Status(http.StatusOK)
 }

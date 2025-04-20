@@ -12,5 +12,5 @@ func RegisterAuth(e *gin.Engine) {
 
 	authGroup.POST("/signup", controller.RegisterUser)
 	authGroup.POST("/login", controller.Login)
-	authGroup.POST("/logout", middleware.VerifyAuthToken, controller.Logout)
+	authGroup.POST("/logout", middleware.CreateAuthMiddleware(true), controller.Logout)
 }

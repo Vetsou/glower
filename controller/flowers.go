@@ -15,7 +15,7 @@ func GetFlowers(c *gin.Context) {
 
 	flowers, err := repo.GetFlowers()
 	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to load flowers. Please try again later.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to load products. Please try again later.")
 		return
 	}
 
@@ -35,7 +35,7 @@ func AddFlower(c *gin.Context) {
 	}
 
 	if err := c.ShouldBind(&request); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
+		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
 		return
 	}
 
@@ -53,12 +53,12 @@ func AddFlower(c *gin.Context) {
 
 	if err := repo.AddFlower(flower, request.Stock); err != nil {
 		tx.Rollback()
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add flower to the database.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add new flower.")
 		return
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Failed to commit changes.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "We couldn't save your changes. Please try again.")
 		return
 	}
 
@@ -77,7 +77,7 @@ func RemoveFlower(c *gin.Context) {
 	repo := repository.NewStockRepo(database.Handle)
 
 	if err := repo.RemoveFlower(c.Param("id")); err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower from DB.")
+		internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower. Please try again later.")
 		return
 	}
 

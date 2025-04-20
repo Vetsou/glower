@@ -130,16 +130,13 @@ func Login(c *gin.Context) {
 	}
 
 	auth.SetCookies(c, &refreshToken, &accessToken)
-
-	c.HTML(http.StatusOK, "success-alert.html", gin.H{
-		"message": "Logged in as " + user.FirstName + " " + user.LastName,
-	})
+	c.Header("HX-Redirect", "/?oper=login")
+	c.Status(http.StatusOK)
 }
 
 func Logout(c *gin.Context) {
 	auth.CleanCookies(c)
 
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"message": "You have successfully logged out.",
-	})
+	c.Header("HX-Redirect", "/?oper=logout")
+	c.Status(http.StatusOK)
 }

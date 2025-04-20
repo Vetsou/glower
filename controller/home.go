@@ -7,5 +7,17 @@ import (
 )
 
 func GetHomePage(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", nil)
+	oper := c.Query("oper")
+	var message string
+
+	switch oper {
+	case "logout":
+		message = "You have successfully logged out."
+	case "login":
+		message = "You have successfully logged in."
+	}
+
+	c.HTML(http.StatusOK, "index.html", gin.H{
+		"message": message,
+	})
 }

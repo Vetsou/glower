@@ -89,9 +89,8 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	c.HTML(http.StatusOK, "success-alert.html", gin.H{
-		"message": "User " + user.FirstName + " " + user.LastName + " registered successfully.",
-	})
+	c.Header("HX-Redirect", "/?oper=register")
+	c.Status(http.StatusOK)
 }
 
 func Login(c *gin.Context) {

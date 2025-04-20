@@ -15,6 +15,8 @@ func GetHomePage(c *gin.Context) {
 		message = "You have successfully logged out."
 	case "login":
 		message = "You have successfully logged in."
+	case "register":
+		message = "Registration successful. Please log in to continue."
 	}
 
 	c.HTML(http.StatusOK, "index.html", gin.H{

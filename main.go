@@ -15,9 +15,10 @@ func init() {
 }
 
 func main() {
+	gin.SetMode(gin.DebugMode)
 	publicRouter := gin.Default()
 	initializers.RegisterServiceMiddleware(publicRouter)
-	initializers.InitHTMLTemplates(publicRouter)
+	initializers.InitHTMLTemplates(publicRouter, "")
 	initializers.RegisterServiceRoutes(publicRouter)
 
 	// Run private router

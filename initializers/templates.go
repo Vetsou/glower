@@ -7,14 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitHTMLTemplates(e *gin.Engine) {
+func InitHTMLTemplates(e *gin.Engine, path string) {
 	patterns := []string{
-		"templates/pages/index.html",
-		"templates/pages/user/*",
-		"templates/pages/shop/*",
-		"templates/pages/error/*",
+		path + "templates/pages/index.html",
+		path + "templates/pages/user/*",
+		path + "templates/pages/shop/*",
+		path + "templates/pages/error/*",
 
-		"templates/partials/*",
+		path + "templates/partials/*",
 	}
 
 	var files []string

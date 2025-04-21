@@ -12,6 +12,9 @@
 run:
 	go run main.go
 
+test:
+	go test ./tests/...
+
 db:
 	cd build && docker-compose -f glower-db.yaml up
 

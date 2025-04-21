@@ -28,8 +28,8 @@ func GetProfilePage(c *gin.Context) {
 	val, exists := c.Get("user")
 
 	if !exists {
-		c.HTML(http.StatusForbidden, "error-page.html", gin.H{
-			"code":    http.StatusForbidden,
+		c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
+			"code":    http.StatusUnauthorized,
 			"message": "User is not logged in.",
 		})
 		return

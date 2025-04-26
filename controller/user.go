@@ -6,36 +6,42 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetRegisterPage(c *gin.Context) {
-	if _, exists := c.Get("user"); exists {
-		c.Redirect(http.StatusFound, "/user/profile")
-		return
-	}
+func CreateRegisterPage() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if _, exists := c.Get("user"); exists {
+			c.Redirect(http.StatusFound, "/user/profile")
+			return
+		}
 
-	c.HTML(http.StatusOK, "user-register.html", nil)
+		c.HTML(http.StatusOK, "user-register.html", nil)
+	}
 }
 
-func GetLoginPage(c *gin.Context) {
-	if _, exists := c.Get("user"); exists {
-		c.Redirect(http.StatusFound, "/user/profile")
-		return
-	}
+func CreateLoginPage() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if _, exists := c.Get("user"); exists {
+			c.Redirect(http.StatusFound, "/user/profile")
+			return
+		}
 
-	c.HTML(http.StatusOK, "user-login.html", nil)
+		c.HTML(http.StatusOK, "user-login.html", nil)
+	}
 }
 
-func GetProfilePage(c *gin.Context) {
-	val, exists := c.Get("user")
+func CreateProfilePage() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		val, exists := c.Get("user")
 
-	if !exists {
-		c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
-			"code":    http.StatusUnauthorized,
-			"message": "User is not logged in.",
+		if !exists {
+			c.HTML(http.StatusUnauthorized, "error-page.html", gin.H{
+				"code":    http.StatusUnauthorized,
+				"message": "User is not logged in.",
+			})
+			return
+		}
+
+		c.HTML(http.StatusOK, "user-profile.html", gin.H{
+			"username": val,
 		})
-		return
 	}
-
-	c.HTML(http.StatusOK, "user-profile.html", gin.H{
-		"username": val,
-	})
 }

@@ -28,7 +28,7 @@ func setupUserRouter() *gin.Engine {
 func setupAuthRouter() *gin.Engine {
 	r := gin.Default()
 	initializers.InitHTMLTemplates(r, "../../")
-	public.RegisterAuth(r)
+	//public.RegisterAuth(r)
 	return r
 }
 

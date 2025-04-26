@@ -4,7 +4,6 @@ import (
 	"errors"
 	"glower/auth"
 	"glower/controller/internal"
-	"glower/database"
 	"glower/database/model"
 	"glower/database/repository"
 	"net/http"
@@ -52,90 +51,96 @@ func (r *registerUserFrom) validate() error {
 	return nil
 }
 
-func RegisterUser(c *gin.Context) {
-	var formData registerUserFrom
-	if err := c.ShouldBind(&formData); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
-		return
-	}
+func CreateRegister(factory repository.AuthRepoFactory) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var formData registerUserFrom
+		if err := c.ShouldBind(&formData); err != nil {
+			internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
+			return
+		}
 
-	if err := formData.validate(); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
-		return
-	}
+		if err := formData.validate(); err != nil {
+			internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data: "+err.Error())
+			return
+		}
 
-	if err := passwordvalidator.Validate(formData.Password, minEntropyBits); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest,
-			"Password is too weak. Please use at least 10 characters, including uppercase, lowercase, numbers, and special characters.")
-		return
-	}
+		if err := passwordvalidator.Validate(formData.Password, minEntropyBits); err != nil {
+			internal.SetPartialError(c, http.StatusBadRequest,
+				"Password is too weak. Please use at least 10 characters, including uppercase, lowercase, numbers, and special characters.")
+			return
+		}
 
-	hashedPass, err := bcrypt.GenerateFromPassword([]byte(formData.Password), bcrypt.DefaultCost)
-	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "An unexpected error occurred while processing your request.")
-		return
-	}
+		hashedPass, err := bcrypt.GenerateFromPassword([]byte(formData.Password), bcrypt.DefaultCost)
+		if err != nil {
+			internal.SetPartialError(c, http.StatusInternalServerError, "An unexpected error occurred while processing your request.")
+			return
+		}
 
-	user := model.User{
-		FirstName:    formData.FirstName,
-		LastName:     formData.LastName,
-		Email:        formData.Email,
-		PasswordHash: hashedPass,
-	}
+		user := model.User{
+			FirstName:    formData.FirstName,
+			LastName:     formData.LastName,
+			Email:        formData.Email,
+			PasswordHash: hashedPass,
+		}
 
-	repo := repository.NewAuthRepo(database.Handle)
-	if err := repo.InsertUser(user); err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "Cannot register user. Please try again later.")
-		return
-	}
+		repo := factory(c)
+		if err := repo.InsertUser(user); err != nil {
+			internal.SetPartialError(c, http.StatusInternalServerError, "Cannot register user. Please try again later.")
+			return
+		}
 
-	c.Header("HX-Redirect", "/?oper=register")
-	c.Status(http.StatusOK)
+		c.Header("HX-Redirect", "/?oper=register")
+		c.Status(http.StatusOK)
+	}
 }
 
-func Login(c *gin.Context) {
-	var request struct {
-		Email    string `form:"email" binding:"required"`
-		Password string `form:"password" binding:"required"`
-	}
+func CrateLogin(factory repository.AuthRepoFactory) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var request struct {
+			Email    string `form:"email" binding:"required"`
+			Password string `form:"password" binding:"required"`
+		}
 
-	if err := c.ShouldBind(&request); err != nil {
-		internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
-		return
-	}
+		if err := c.ShouldBind(&request); err != nil {
+			internal.SetPartialError(c, http.StatusBadRequest, "Invalid form data. Please fill all required fields.")
+			return
+		}
 
-	repo := repository.NewAuthRepo(database.Handle)
-	user, err := repo.GetUser(request.Email)
-	if err != nil {
-		internal.SetPartialError(c, http.StatusUnauthorized, "Invalid email or password.")
-		return
-	}
+		repo := factory(c)
+		user, err := repo.GetUser(request.Email)
+		if err != nil {
+			internal.SetPartialError(c, http.StatusUnauthorized, "Invalid email or password.")
+			return
+		}
 
-	if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(request.Password)); err != nil {
-		internal.SetPartialError(c, http.StatusUnauthorized, "Invalid email or password.")
-		return
-	}
+		if err := bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(request.Password)); err != nil {
+			internal.SetPartialError(c, http.StatusUnauthorized, "Invalid email or password.")
+			return
+		}
 
-	accessToken, err := auth.CreateJWT(user, user.Email)
-	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
-		return
-	}
+		accessToken, err := auth.CreateJWT(user, user.Email)
+		if err != nil {
+			internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
+			return
+		}
 
-	refreshToken, err := auth.CreateRefreshToken(user)
-	if err != nil {
-		internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
-		return
-	}
+		refreshToken, err := auth.CreateRefreshToken(user)
+		if err != nil {
+			internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
+			return
+		}
 
-	auth.SetCookies(c, &refreshToken, &accessToken)
-	c.Header("HX-Redirect", "/?oper=login")
-	c.Status(http.StatusOK)
+		auth.SetCookies(c, &refreshToken, &accessToken)
+		c.Header("HX-Redirect", "/?oper=login")
+		c.Status(http.StatusOK)
+	}
 }
 
-func Logout(c *gin.Context) {
-	auth.CleanCookies(c)
+func CreateLogout() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		auth.CleanCookies(c)
 
-	c.Header("HX-Redirect", "/?oper=logout")
-	c.Status(http.StatusOK)
+		c.Header("HX-Redirect", "/?oper=logout")
+		c.Status(http.StatusOK)
+	}
 }

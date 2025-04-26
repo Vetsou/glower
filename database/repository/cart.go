@@ -5,8 +5,18 @@ import (
 	"fmt"
 	"glower/database/model"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+type CartRepoFactory func(c *gin.Context) CartRepository
+
+func CreateCartRepoFactory() CartRepoFactory {
+	return func(c *gin.Context) CartRepository {
+		tx := c.MustGet("tx").(*gorm.DB)
+		return newCartRepo(tx)
+	}
+}
 
 type CartRepository interface {
 	GetUserCart(userId uint) (model.Cart, error)
@@ -20,7 +30,7 @@ type cartRepo struct {
 	db *gorm.DB
 }
 
-func NewCartRepo(tx *gorm.DB) CartRepository {
+func newCartRepo(tx *gorm.DB) CartRepository {
 	return &cartRepo{db: tx}
 }
 

@@ -21,7 +21,7 @@ func renderResponse(c *gin.Context, code int, msg string) {
 	c.Abort()
 }
 
-func CreateAuthMiddleware(isStrict bool) gin.HandlerFunc {
+func CreateAuth(isStrict bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(auth.AccessTokenName)
 		if err != nil {

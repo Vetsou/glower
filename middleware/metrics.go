@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CountRequest(c *gin.Context) {
+func CreateMetrics(c *gin.Context) {
 	metrics.HTTPTotalRequest.WithLabelValues(c.Request.Method, c.FullPath()).Inc()
 	c.Next()
 }

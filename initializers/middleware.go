@@ -7,5 +7,5 @@ import (
 )
 
 func RegisterServiceMiddleware(e *gin.Engine) {
-	e.Use(middleware.CountRequest)
+	e.Use(middleware.CreateMetrics)
 }

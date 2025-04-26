@@ -18,7 +18,7 @@ const minEntropyBits = 60
 type registerUserFrom struct {
 	FirstName       string `form:"first-name" binding:"required"`
 	LastName        string `form:"last-name" binding:"required"`
-	Email           string `form:"email" binding:"required"`
+	Email           string `form:"email" binding:"required,email"`
 	Password        string `form:"password" binding:"required"`
 	ConfirmPassword string `form:"confirm-password" binding:"required"`
 }
@@ -94,10 +94,10 @@ func CreateRegister(factory repository.AuthRepoFactory) gin.HandlerFunc {
 	}
 }
 
-func CrateLogin(factory repository.AuthRepoFactory) gin.HandlerFunc {
+func CreateLogin(factory repository.AuthRepoFactory) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request struct {
-			Email    string `form:"email" binding:"required"`
+			Email    string `form:"email" binding:"required,email"`
 			Password string `form:"password" binding:"required"`
 		}
 

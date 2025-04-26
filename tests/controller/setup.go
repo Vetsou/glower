@@ -25,6 +25,13 @@ func setupUserRouter() *gin.Engine {
 	return r
 }
 
+func setupAuthRouter() *gin.Engine {
+	r := gin.Default()
+	initializers.InitHTMLTemplates(r, "../../")
+	public.RegisterAuth(r)
+	return r
+}
+
 func setupTokenAuth() (string, error) {
 	os.Setenv("ACCESS_TOKEN_SECRET", "test-access-token-value")
 	os.Setenv("REFRESH_TOKEN_SECRET", "test-refresh-token-value")

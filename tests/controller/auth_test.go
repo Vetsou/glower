@@ -167,7 +167,7 @@ var registerTestCases = []registerTestData{
 // Tests
 
 func TestLogin_NoData(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupAuthRouter()
 
 	token, err := createTokenMock()
@@ -189,7 +189,7 @@ func TestLogin_NoData(t *testing.T) {
 }
 
 func TestLogin_WithData(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupAuthRouter()
 
 	token, err := createTokenMock()
@@ -219,7 +219,7 @@ func TestLogin_WithData(t *testing.T) {
 }
 
 func TestRegister_NoData(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupAuthRouter()
 
 	token, err := createTokenMock()
@@ -241,7 +241,7 @@ func TestRegister_NoData(t *testing.T) {
 }
 
 func TestRegister_WithData(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupAuthRouter()
 
 	token, err := createTokenMock()
@@ -273,7 +273,7 @@ func TestRegister_WithData(t *testing.T) {
 }
 
 func TestLogout_WithToken(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupAuthRouter()
 
 	token, err := createTokenMock()
@@ -303,7 +303,7 @@ func TestLogout_WithToken(t *testing.T) {
 }
 
 func TestLogout_NoToken(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupAuthRouter()
 
 	req, _ := http.NewRequest("POST", "/auth/logout", nil)

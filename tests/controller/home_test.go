@@ -28,7 +28,7 @@ func setupHomeRouter() *gin.Engine {
 // Tests
 
 func TestGetHomePage_NoOper(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/", nil)
 	resp := httptest.NewRecorder()
@@ -44,7 +44,7 @@ func TestGetHomePage_NoOper(t *testing.T) {
 }
 
 func TestGetHomePage_Logout(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/?oper=logout", nil)
 	resp := httptest.NewRecorder()
@@ -58,7 +58,7 @@ func TestGetHomePage_Logout(t *testing.T) {
 }
 
 func TestGetHomePage_Login(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/?oper=login", nil)
 	resp := httptest.NewRecorder()
@@ -72,7 +72,7 @@ func TestGetHomePage_Login(t *testing.T) {
 }
 
 func TestGetHomePage_Register(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/?oper=register", nil)
 	resp := httptest.NewRecorder()

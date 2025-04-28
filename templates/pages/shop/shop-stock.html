@@ -59,13 +59,13 @@
         <h3>{{.Name}} -
           {{if .DiscountPrice}}
             <span style="text-decoration: line-through;">{{.Price}}$</span>
-            <span> {{.DiscountPrice}}$</span>
+            <span>{{.DiscountPrice}}$</span>
           {{else}}
             {{.Price}}$
           {{end}}
         </h3>
         <p>Stock: {{.Inventory.Stock}}</p>
-        <p>Description: {{.Description}}</p>
+        {{if .Description}}<p>Description: {{.Description}}</p>{{end}}
         <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
         <button
           hx-post="/cart/"

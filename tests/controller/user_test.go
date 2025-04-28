@@ -32,7 +32,7 @@ func setupUserRouter() *gin.Engine {
 // Tests
 
 func TestGetRegisterPage_NoUser(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupUserRouter()
 	req, _ := http.NewRequest("GET", "/user/register", nil)
 	resp := httptest.NewRecorder()
@@ -46,7 +46,7 @@ func TestGetRegisterPage_NoUser(t *testing.T) {
 }
 
 func TestGetRegisterPage_WithUser(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupUserRouter()
 	token, err := createTokenMock()
 	assert.NoError(t, err)
@@ -67,7 +67,7 @@ func TestGetRegisterPage_WithUser(t *testing.T) {
 }
 
 func TestGetLoginPage_NoUser(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupUserRouter()
 	req, _ := http.NewRequest("GET", "/user/login", nil)
 	resp := httptest.NewRecorder()
@@ -81,7 +81,7 @@ func TestGetLoginPage_NoUser(t *testing.T) {
 }
 
 func TestGetLoginPage_WithUser(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupUserRouter()
 	token, err := createTokenMock()
 	assert.NoError(t, err)
@@ -102,7 +102,7 @@ func TestGetLoginPage_WithUser(t *testing.T) {
 }
 
 func TestGetProfilePage_NoUser(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupUserRouter()
 	req, _ := http.NewRequest("GET", "/user/profile", nil)
 	resp := httptest.NewRecorder()
@@ -116,7 +116,7 @@ func TestGetProfilePage_NoUser(t *testing.T) {
 }
 
 func TestGetProfilePage_WithUser(t *testing.T) {
-	// Setup
+	// Arrange
 	router := setupUserRouter()
 	token, err := createTokenMock()
 	assert.NoError(t, err)

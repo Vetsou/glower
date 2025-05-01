@@ -22,7 +22,7 @@ type CartRepository interface {
 	GetUserCart(userId uint) (model.Cart, error)
 	AddOrUpdateCartItem(cartID, flowerID uint) (model.CartItem, error)
 	GetCartItems(cartID uint) ([]model.CartItem, error)
-	RemoveCartItem(cartID uint, cartItemID string) error
+	RemoveCartItem(cartID uint, cartItemID uint) error
 	GetFlowerByID(flowerID uint) (model.Flower, error)
 }
 
@@ -96,7 +96,7 @@ func (r *cartRepo) GetCartItems(cartID uint) ([]model.CartItem, error) {
 	return items, nil
 }
 
-func (r *cartRepo) RemoveCartItem(cartID uint, cartItemID string) error {
+func (r *cartRepo) RemoveCartItem(cartID uint, cartItemID uint) error {
 	return r.db.Where("id = ? AND cart_id = ?", cartItemID, cartID).Delete(&model.CartItem{}).Error
 }
 

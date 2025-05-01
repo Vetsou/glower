@@ -3,11 +3,30 @@ package controller
 import (
 	"fmt"
 	"glower/controller/internal"
+	"glower/database/model"
 	"glower/database/repository"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+func calcCartItemsPrice(cartItems *[]model.CartItem) float64 {
+	var totalPrice float64
+	for _, item := range *cartItems {
+		var unitPrice float64
+
+		if item.Flower.DiscountPrice.Valid {
+			unitPrice = item.Flower.DiscountPrice.Float64
+		} else {
+			unitPrice = item.Flower.Price
+		}
+
+		totalPrice += float64(item.Quantity) * unitPrice
+	}
+
+	return totalPrice
+}
 
 func CreateGetCartItems(factory repository.CartRepoFactory) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -25,10 +44,7 @@ func CreateGetCartItems(factory repository.CartRepoFactory) gin.HandlerFunc {
 			return
 		}
 
-		var totalPrice float32
-		for _, item := range cartItems {
-			totalPrice += float32(item.Quantity) * item.Flower.Price
-		}
+		totalPrice := calcCartItemsPrice(&cartItems)
 
 		c.HTML(http.StatusOK, "user-cart.html", gin.H{
 			"cartItems":  cartItems,
@@ -83,22 +99,21 @@ func CreateAddCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 
 func CreateRemoveCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		cartItemId, exists := c.Params.Get("id")
-
-		if !exists {
-			internal.SetPartialError(c, http.StatusBadRequest, "Cart item ID is required.")
+		idParam := c.Params.ByName("id")
+		cartItemId, err := strconv.ParseUint(idParam, 10, 64)
+		if err != nil {
+			internal.SetPartialError(c, http.StatusBadRequest, "Wrong cart item ID.")
 			return
 		}
 
 		repo := factory(c)
-
 		cart, err := repo.GetUserCart(c.GetUint("id"))
 		if err != nil {
 			internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load your cart.")
 			return
 		}
 
-		if err := repo.RemoveCartItem(cart.ID, cartItemId); err != nil {
+		if err := repo.RemoveCartItem(cart.ID, uint(cartItemId)); err != nil {
 			internal.SetPartialError(c, http.StatusInternalServerError, "Unable to remove cart item.")
 			return
 		}

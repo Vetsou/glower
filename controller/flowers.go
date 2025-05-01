@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"glower/controller/internal"
 	"glower/database/model"
 	"glower/database/repository"
@@ -28,12 +29,12 @@ func CreateGetFlowers(factory repository.StockRepoFactory) gin.HandlerFunc {
 func CreateAddFlower(factory repository.StockRepoFactory) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var request struct {
-			Name          string  `form:"name" binding:"required"`
-			Price         float32 `form:"price" binding:"required"`
-			Available     bool    `form:"available"`
-			Description   string  `form:"description"`
-			DiscountPrice float32 `form:"discount"`
-			Stock         uint    `form:"stock" binding:"required"`
+			Name          string   `form:"name" binding:"required"`
+			Price         float64  `form:"price" binding:"required"`
+			Available     bool     `form:"available"`
+			Description   string   `form:"description"`
+			DiscountPrice *float64 `form:"discount"`
+			Stock         uint     `form:"stock" binding:"required"`
 		}
 
 		if err := c.ShouldBind(&request); err != nil {
@@ -46,7 +47,14 @@ func CreateAddFlower(factory repository.StockRepoFactory) gin.HandlerFunc {
 			Price:         request.Price,
 			Available:     request.Available,
 			Description:   request.Description,
-			DiscountPrice: request.DiscountPrice,
+			DiscountPrice: sql.NullFloat64{Float64: float64(0), Valid: false},
+		}
+
+		if request.DiscountPrice != nil {
+			flower.DiscountPrice = sql.NullFloat64{
+				Float64: *request.DiscountPrice,
+				Valid:   true,
+			}
 		}
 
 		repo := factory(c)

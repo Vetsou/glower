@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"fmt"
 	"glower/controller"
 	"glower/database/model"
@@ -46,7 +47,7 @@ func (r *mockStockRepo) GetFlowers() ([]model.Flower, error) {
 			Price:         7.99,
 			Available:     true,
 			Description:   "Red flower",
-			DiscountPrice: 5.99,
+			DiscountPrice: sql.NullFloat64{Float64: 5.99, Valid: true},
 			Inventory: model.Inventory{
 				FlowerID: 1,
 				Stock:    13,
@@ -110,14 +111,14 @@ func TestGetFlowers_MapsDataCorrectly(t *testing.T) {
 	assert.Equal(t, http.StatusOK, resp.Code)
 
 	assert.Contains(t, resp.Body.String(), "Sunflower")
-	assert.Contains(t, resp.Body.String(), "9.99$")
+	assert.Contains(t, resp.Body.String(), "$9.99")
 	assert.Contains(t, resp.Body.String(), "Description: Yellow flower")
 	assert.Contains(t, resp.Body.String(), "Stock: 10")
 	assert.Contains(t, resp.Body.String(), "Available: No")
 
 	assert.Contains(t, resp.Body.String(), "Poppy")
-	assert.Contains(t, resp.Body.String(), `"text-decoration: line-through;">7.99$<`)
-	assert.Contains(t, resp.Body.String(), "5.99$")
+	assert.Contains(t, resp.Body.String(), `"text-decoration: line-through;">$7.99<`)
+	assert.Contains(t, resp.Body.String(), "$5.99")
 	assert.Contains(t, resp.Body.String(), "Description: Red flower")
 	assert.Contains(t, resp.Body.String(), "Stock: 13")
 	assert.Contains(t, resp.Body.String(), "Available: Yes")
@@ -177,8 +178,8 @@ func TestCreateFlower_WithCorrectData(t *testing.T) {
 	// Assert
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Contains(t, resp.Body.String(), "FlowerName")
-	assert.Contains(t, resp.Body.String(), `"text-decoration: line-through;">15$<`)
-	assert.Contains(t, resp.Body.String(), "10$")
+	assert.Contains(t, resp.Body.String(), `"text-decoration: line-through;">$15<`)
+	assert.Contains(t, resp.Body.String(), "$10")
 	assert.Contains(t, resp.Body.String(), "Description: Nice flower")
 	assert.Contains(t, resp.Body.String(), "Stock: 12")
 	assert.Contains(t, resp.Body.String(), "Available: Yes")
@@ -203,7 +204,7 @@ func TestCreateFlower_WithMissingOptionalData(t *testing.T) {
 	// Assert
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Contains(t, resp.Body.String(), "FlowerName")
-	assert.Contains(t, resp.Body.String(), "12$")
+	assert.Contains(t, resp.Body.String(), "$12")
 	assert.Contains(t, resp.Body.String(), "Stock: 13")
 	assert.Contains(t, resp.Body.String(), "Available: No")
 

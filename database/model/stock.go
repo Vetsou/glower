@@ -1,15 +1,19 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"database/sql"
+
+	"gorm.io/gorm"
+)
 
 type Flower struct {
 	gorm.Model
 	Name          string  `gorm:"not null"`
-	Price         float32 `gorm:"not null"`
+	Price         float64 `gorm:"not null"`
 	Available     bool    `gorm:"default:false"`
 	Description   string
-	DiscountPrice float32   `gorm:"default:0"`
-	Inventory     Inventory `gorm:"foreignKey:FlowerID;constraint:OnDelete:CASCADE;"`
+	DiscountPrice sql.NullFloat64 `gorm:"default:null"`
+	Inventory     Inventory       `gorm:"foreignKey:FlowerID;constraint:OnDelete:CASCADE;"`
 }
 
 type Inventory struct {

@@ -1,93 +1,36 @@
 package controller
 
 import (
-	"database/sql"
 	"glower/auth"
 	"glower/controller"
 	"glower/database/model"
 	"glower/database/repository"
 	"glower/initializers"
 	"glower/middleware"
+	"glower/tests/mocks"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
-
-// Mock
-
-type mockCartRepo struct{}
-
-func (r *mockCartRepo) GetUserCart(userId uint) (model.Cart, error) {
-	return model.Cart{}, nil
-}
-
-func (r *mockCartRepo) AddOrUpdateCartItem(cartID, flowerID uint) (model.CartItem, error) {
-	return model.CartItem{}, nil
-}
-
-func (r *mockCartRepo) GetCartItems(cartID uint) ([]model.CartItem, error) {
-	return []model.CartItem{
-		{
-			CartID:   1,
-			FlowerID: 11,
-			Flower: model.Flower{
-				Name:        "Sunflower",
-				Price:       9.99000,
-				Available:   false,
-				Description: "Yellow flower",
-				Inventory: model.Inventory{
-					FlowerID: 1,
-					Stock:    10,
-				},
-			},
-			Quantity: 1,
-		},
-		{
-			CartID:   2,
-			FlowerID: 12,
-			Flower: model.Flower{
-				Name:          "Poppy",
-				Price:         7.99000,
-				Available:     true,
-				Description:   "Red flower",
-				DiscountPrice: sql.NullFloat64{Float64: 5.99000, Valid: true},
-				Inventory: model.Inventory{
-					FlowerID: 1,
-					Stock:    13,
-				},
-			},
-			Quantity: 2,
-		},
-	}, nil
-}
-
-func (r *mockCartRepo) RemoveCartItem(cartID uint, cartItemID uint) error {
-	return nil
-}
-
-func (r *mockCartRepo) GetFlowerByID(flowerID uint) (model.Flower, error) {
-	return model.Flower{}, nil
-}
-
-func GetMockCartRepoFactory() repository.CartRepoFactory {
-	return func(c *gin.Context) repository.CartRepository {
-		return &mockCartRepo{}
-	}
-}
 
 // Setup
 
-func setupCartRouter() *gin.Engine {
+func setupCartRouter(mockRepo repository.CartRepository) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
 	initializers.InitHTMLTemplates(r, "../../")
 
 	group := r.Group("/cart")
-	factory := GetMockCartRepoFactory()
+	factory := func(c *gin.Context) repository.CartRepository { return mockRepo }
 	group.GET("/", middleware.CreateAuth(true), controller.CreateGetCartItems(factory))
 	group.POST("/", middleware.CreateAuth(true), controller.CreateAddCartItem(factory))
 	group.DELETE("/:id", middleware.CreateAuth(true), controller.CreateRemoveCartItem(factory))
@@ -95,36 +38,270 @@ func setupCartRouter() *gin.Engine {
 	return r
 }
 
+// Suite
+
+type CartControllerTestSuite struct {
+	suite.Suite
+	mockRepo *mocks.CartRepoMock
+	router   *gin.Engine
+	token    string
+}
+
+func (s *CartControllerTestSuite) SetupSuite() {
+	var err error
+	s.token, err = createTokenMock()
+	s.Require().NoError(err)
+}
+
+func (s *CartControllerTestSuite) SetupTest() {
+	s.mockRepo = new(mocks.CartRepoMock)
+	s.router = setupCartRouter(s.mockRepo)
+}
+
+func (s *CartControllerTestSuite) newRequest(method, path string, body io.Reader) *http.Request {
+	req := httptest.NewRequest(method, path, body)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+	req.AddCookie(&http.Cookie{Name: auth.AccessTokenName, Value: s.token})
+	return req
+}
+
 // Tests
 
-func TestGetCartItems_MapsDataCorrectly(t *testing.T) {
+func (s *CartControllerTestSuite) TestGetCartItems_MapsDataCorrectly() {
 	// Arrange
-	router := setupCartRouter()
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("GetCartItems", mock.Anything).Return(mocks.GetTestCartItems(), nil)
 
-	token, err := createTokenMock()
-	assert.NoError(t, err)
+	resp := httptest.NewRecorder()
+	req := s.newRequest("GET", "/cart/", nil)
 
-	req, _ := http.NewRequest("GET", "/cart/", nil)
-	req.AddCookie(&http.Cookie{
-		Name:  auth.AccessTokenName,
-		Value: token,
-	})
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusOK, resp.Code)
+	body := resp.Body.String()
+
+	s.Contains(body, "Sunflower")
+	s.Contains(body, "$9.99")
+	s.Contains(body, "<td>1</td>")
+
+	s.Contains(body, "Poppy")
+	s.Contains(body, "$5.99")
+	s.Contains(body, "<td>2</td>")
+
+	s.NotContains(body, "Your cart is empty.")
+	s.Contains(body, "Total Price: $21.97")
+}
+
+func (s *CartControllerTestSuite) TestGetCartItems_EmptyCart() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("GetCartItems", mock.Anything).Return(mocks.GetEmptyCartItems(), nil)
+
+	resp := httptest.NewRecorder()
+	req := s.newRequest("GET", "/cart/", nil)
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "Your cart is empty.")
+}
+
+func (s *CartControllerTestSuite) TestGetCartItems_UserCartError() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
+
+	resp := httptest.NewRecorder()
+	req := s.newRequest("GET", "/cart/", nil)
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to load your cart.")
+}
+
+func (s *CartControllerTestSuite) TestGetCartItems_CartItemsError() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("GetCartItems", mock.Anything).Return([]model.CartItem{}, assert.AnError)
+
+	resp := httptest.NewRecorder()
+	req := s.newRequest("GET", "/cart/", nil)
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to load your cart items.")
+}
+
+func (s *CartControllerTestSuite) TestAddCartItem_WithCorrectData() {
+	// Arrange
+	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("AddOrUpdateCartItem", mock.Anything, mock.Anything).Return(mocks.GetAddedCartFlower(), nil)
+
+	form := url.Values{}
+	form.Add("flowerId", "13")
+
+	resp := httptest.NewRecorder()
+	req := s.newRequest("POST", "/cart/", strings.NewReader(form.Encode()))
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "Flower Sunflower was added to your cart. You currently have 1 Sunflower in your cart.")
+}
+
+func (s *CartControllerTestSuite) TestAddCartItem_InvalidFlowerID() {
+	// Arrange
+	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(model.Flower{}, assert.AnError)
+
+	form := url.Values{}
+	form.Add("flowerId", "13")
+
+	req := s.newRequest("POST", "/cart/", strings.NewReader(form.Encode()))
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
+	s.Equal(http.StatusNotFound, resp.Code)
+	s.Contains(resp.Body.String(), "The requested flower is unavailable.")
+}
 
-	assert.Contains(t, resp.Body.String(), "Sunflower")
-	assert.Contains(t, resp.Body.String(), "$9.99")
-	assert.Contains(t, resp.Body.String(), "<td>1</td>")
+func (s *CartControllerTestSuite) TestAddCartItem_FlowerUnavailable() {
+	// Arrange
+	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(false), nil)
 
-	assert.Contains(t, resp.Body.String(), "Poppy")
-	assert.Contains(t, resp.Body.String(), "$5.99")
-	assert.Contains(t, resp.Body.String(), "<td>2</td>")
+	form := url.Values{}
+	form.Add("flowerId", "13")
 
-	assert.NotContains(t, resp.Body.String(), "Your cart is empty.")
-	assert.Contains(t, resp.Body.String(), "Total Price: $21.97")
+	req := s.newRequest("POST", "/cart/", strings.NewReader(form.Encode()))
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusBadRequest, resp.Code)
+	s.Contains(resp.Body.String(), "This flower is no longer available for purchase.")
+}
+
+func (s *CartControllerTestSuite) TestAddCartItem_UnableToLoadCart() {
+	// Arrange
+	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
+
+	form := url.Values{}
+	form.Add("flowerId", "13")
+
+	req := s.newRequest("POST", "/cart/", strings.NewReader(form.Encode()))
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to load your cart.")
+}
+
+func (s *CartControllerTestSuite) TestAddCartItem_UnableToAddCartItem() {
+	// Arrange
+	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("AddOrUpdateCartItem", mock.Anything, mock.Anything).Return(model.CartItem{}, assert.AnError)
+
+	form := url.Values{}
+	form.Add("flowerId", "13")
+
+	req := s.newRequest("POST", "/cart/", strings.NewReader(form.Encode()))
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to load your cart items.")
+}
+
+func (s *CartControllerTestSuite) TestRemoveCartItem_ValidRequest() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)
+
+	req := s.newRequest("DELETE", "/cart/1", nil)
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "Item was removed from your cart.")
+}
+
+func (s *CartControllerTestSuite) TestRemoveCartItem_WrongId() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)
+
+	req := s.newRequest("DELETE", "/cart/test", nil)
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusBadRequest, resp.Code)
+	s.Contains(resp.Body.String(), "Wrong cart item ID.")
+}
+
+func (s *CartControllerTestSuite) TestRemoveCartItem_UnableToLoadCart() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
+	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)
+
+	req := s.newRequest("DELETE", "/cart/1", nil)
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to load your cart.")
+}
+
+func (s *CartControllerTestSuite) TestRemoveCartItem_UnableToRemoveCartItem() {
+	// Arrange
+	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
+	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(assert.AnError)
+
+	req := s.newRequest("DELETE", "/cart/1", nil)
+	resp := httptest.NewRecorder()
+
+	// Act
+	s.router.ServeHTTP(resp, req)
+
+	// Assert
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to remove cart item.")
+}
+
+func TestCartControllerTestSuite(t *testing.T) {
+	suite.Run(t, new(CartControllerTestSuite))
 }

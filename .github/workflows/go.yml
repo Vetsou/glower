@@ -1,4 +1,4 @@
-name: Build Go Project
+name: Build and run tests
 
 on:
   push:
@@ -36,3 +36,7 @@ jobs:
     - name: Build service
       run: |
         go build -v main.go
+
+    - name: Run tests
+      run: |
+        go test -v ./tests/...

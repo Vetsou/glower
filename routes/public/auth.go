@@ -2,15 +2,19 @@ package public
 
 import (
 	"glower/controller"
+	"glower/database/repository"
 	"glower/middleware"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterAuth(e *gin.Engine) {
+func RegisterAuth(e *gin.Engine, db *gorm.DB) {
 	authGroup := e.Group("/auth")
 
-	authGroup.POST("/signup", controller.RegisterUser)
-	authGroup.POST("/login", controller.Login)
-	authGroup.POST("/logout", middleware.CreateAuthMiddleware(true), controller.Logout)
+	factory := repository.CreateAuthRepoFactory()
+
+	authGroup.POST("/signup", middleware.CreateTransaction(db), controller.CreateRegister(factory))
+	authGroup.POST("/login", middleware.CreateTransaction(db), controller.CreateLogin(factory))
+	authGroup.POST("/logout", middleware.CreateAuth(true), controller.CreateLogout())
 }

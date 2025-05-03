@@ -1,14 +1,14 @@
 <div class="flower-{{.ID}}">
   <h3>{{.name}} -
-    {{if .discountPrice}}
-      <span style="text-decoration: line-through;">{{.price}}$</span>
-      <span> {{.discountPrice}}$</span>
+    {{if .discountPrice.Valid}}
+      <span style="text-decoration: line-through;">${{.price}}</span>
+      <span>${{.discountPrice.Float64}}</span>
     {{else}}
-      {{.price}}$
+      ${{.price}}
     {{end}}
   </h3>
   <p>Stock: {{.stock}}</p>
-  <p>Description: {{.description}}</p>
+  {{if .description}}<p>Description: {{.description}}</p>{{end}}
   <p>Available: {{if .available}}Yes{{else}}No{{end}}</p>
 
   <button

@@ -5,14 +5,16 @@ import (
 	"glower/routes/public"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterServiceRoutes(e *gin.Engine) {
+func RegisterServiceRoutes(e *gin.Engine, db *gorm.DB) {
 	public.RegisterHome(e)
-	public.RegisterFlowers(e)
 	public.RegisterUser(e)
-	public.RegisterAuth(e)
-	public.RegisterCart(e)
+
+	public.RegisterFlowers(e, db)
+	public.RegisterAuth(e, db)
+	public.RegisterCart(e, db)
 }
 
 func RegisterPrivateRoutes(e *gin.Engine) {

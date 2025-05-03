@@ -9,5 +9,5 @@ import (
 func RegisterHome(e *gin.Engine) {
 	homeGroup := e.Group("/")
 
-	homeGroup.GET("/", controller.GetHomePage)
+	homeGroup.GET("/", controller.CreateGetHomePage())
 }

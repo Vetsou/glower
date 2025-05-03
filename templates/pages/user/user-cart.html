@@ -19,7 +19,11 @@
         {{ range .cartItems }}
         <tr>
           <td>{{ .Flower.Name }}</td>
-          <td>${{ printf "%.2f" .Flower.Price }}</td>
+          {{ if .Flower.DiscountPrice.Valid }}
+            <td>${{ printf "%.2f" .Flower.DiscountPrice.Float64 }}</td>
+          {{else}}
+            <td>${{ printf "%.2f" .Flower.Price }}</td>
+          {{end}}
           <td>{{ .Quantity }}</td>
         </tr>
         {{ end }}

@@ -7,18 +7,22 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
+
+var db *gorm.DB
 
 func init() {
 	initializers.LoadEnvVariables()
-	database.Init()
+	db = database.Init()
 }
 
 func main() {
+	gin.SetMode(gin.DebugMode)
 	publicRouter := gin.Default()
 	initializers.RegisterServiceMiddleware(publicRouter)
-	initializers.InitHTMLTemplates(publicRouter)
-	initializers.RegisterServiceRoutes(publicRouter)
+	initializers.InitHTMLTemplates(publicRouter, "")
+	initializers.RegisterServiceRoutes(publicRouter, db)
 
 	// Run private router
 	go func() {

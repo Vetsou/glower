@@ -5,14 +5,24 @@ import (
 	"fmt"
 	"glower/database/model"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
+
+type CartRepoFactory func(c *gin.Context) CartRepository
+
+func CreateCartRepoFactory() CartRepoFactory {
+	return func(c *gin.Context) CartRepository {
+		tx := c.MustGet("tx").(*gorm.DB)
+		return newCartRepo(tx)
+	}
+}
 
 type CartRepository interface {
 	GetUserCart(userId uint) (model.Cart, error)
 	AddOrUpdateCartItem(cartID, flowerID uint) (model.CartItem, error)
 	GetCartItems(cartID uint) ([]model.CartItem, error)
-	RemoveCartItem(cartID uint, cartItemID string) error
+	RemoveCartItem(cartID uint, cartItemID uint) error
 	GetFlowerByID(flowerID uint) (model.Flower, error)
 }
 
@@ -20,7 +30,7 @@ type cartRepo struct {
 	db *gorm.DB
 }
 
-func NewCartRepo(tx *gorm.DB) CartRepository {
+func newCartRepo(tx *gorm.DB) CartRepository {
 	return &cartRepo{db: tx}
 }
 
@@ -86,7 +96,7 @@ func (r *cartRepo) GetCartItems(cartID uint) ([]model.CartItem, error) {
 	return items, nil
 }
 
-func (r *cartRepo) RemoveCartItem(cartID uint, cartItemID string) error {
+func (r *cartRepo) RemoveCartItem(cartID uint, cartItemID uint) error {
 	return r.db.Where("id = ? AND cart_id = ?", cartItemID, cartID).Delete(&model.CartItem{}).Error
 }
 

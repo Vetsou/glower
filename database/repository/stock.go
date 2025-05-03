@@ -1,24 +1,33 @@
 package repository
 
 import (
-	"glower/database"
 	"glower/database/model"
 
+	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
+type StockRepoFactory func(c *gin.Context) StockRepository
+
+func CreateStockRepoFactory() StockRepoFactory {
+	return func(c *gin.Context) StockRepository {
+		tx := c.MustGet("tx").(*gorm.DB)
+		return newStockRepo(tx)
+	}
+}
+
 type StockRepository interface {
 	GetFlowers() ([]model.Flower, error)
 	AddFlower(flower model.Flower, flowerStock uint) error
-	RemoveFlower(id string) error
+	RemoveFlower(id uint) error
 }
 
 type stockRepo struct {
 	db *gorm.DB
 }
 
-func NewStockRepo(tx *gorm.DB) StockRepository {
+func newStockRepo(tx *gorm.DB) StockRepository {
 	return &stockRepo{db: tx}
 }
 
@@ -50,8 +59,8 @@ func (r *stockRepo) AddFlower(flower model.Flower, count uint) error {
 	return nil
 }
 
-func (r *stockRepo) RemoveFlower(id string) error {
-	err := database.Handle.
+func (r *stockRepo) RemoveFlower(id uint) error {
+	err := r.db.
 		Select(clause.Associations).
 		Delete(&model.Flower{}, id).Error
 

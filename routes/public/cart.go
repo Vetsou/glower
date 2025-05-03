@@ -2,15 +2,30 @@ package public
 
 import (
 	"glower/controller"
+	"glower/database/repository"
 	"glower/middleware"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterCart(e *gin.Engine) {
+func RegisterCart(e *gin.Engine, db *gorm.DB) {
 	flowersGroup := e.Group("/cart")
 
-	flowersGroup.GET("/", middleware.CreateAuthMiddleware(true), controller.GetCartItems)
-	flowersGroup.POST("/", middleware.CreateAuthMiddleware(true), controller.AddCartItem)
-	flowersGroup.DELETE("/:id", middleware.CreateAuthMiddleware(true), controller.RemoveCartItem)
+	factory := repository.CreateCartRepoFactory()
+
+	flowersGroup.GET("/",
+		middleware.CreateAuth(true),
+		middleware.CreateTransaction(db),
+		controller.CreateGetCartItems(factory))
+
+	flowersGroup.POST("/",
+		middleware.CreateAuth(true),
+		middleware.CreateTransaction(db),
+		controller.CreateAddCartItem(factory))
+
+	flowersGroup.DELETE("/:id",
+		middleware.CreateAuth(true),
+		middleware.CreateTransaction(db),
+		controller.CreateRemoveCartItem(factory))
 }

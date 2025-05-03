@@ -31,13 +31,13 @@ func setupUserRouter() *gin.Engine {
 
 // Suite
 
-type userControllerTestSuite struct {
+type userControllerSuite struct {
 	suite.Suite
 	router *gin.Engine
 	token  string
 }
 
-func (s *userControllerTestSuite) SetupSuite() {
+func (s *userControllerSuite) SetupSuite() {
 	s.router = setupUserRouter()
 
 	var err error
@@ -47,7 +47,7 @@ func (s *userControllerTestSuite) SetupSuite() {
 
 // Tests
 
-func (s *userControllerTestSuite) TestGetRegisterPage_NoUser() {
+func (s *userControllerSuite) TestGetRegisterPage_NoUser() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/user/register", nil)
 	resp := httptest.NewRecorder()
@@ -60,7 +60,7 @@ func (s *userControllerTestSuite) TestGetRegisterPage_NoUser() {
 	s.Contains(resp.Body.String(), "User Register")
 }
 
-func (s *userControllerTestSuite) TestGetRegisterPage_WithUser() {
+func (s *userControllerSuite) TestGetRegisterPage_WithUser() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/user/register", nil)
 	req.AddCookie(&http.Cookie{
@@ -77,7 +77,7 @@ func (s *userControllerTestSuite) TestGetRegisterPage_WithUser() {
 	s.NotContains(resp.Body.String(), "User Register")
 }
 
-func (s *userControllerTestSuite) TestGetLoginPage_NoUser() {
+func (s *userControllerSuite) TestGetLoginPage_NoUser() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/user/login", nil)
 	resp := httptest.NewRecorder()
@@ -90,7 +90,7 @@ func (s *userControllerTestSuite) TestGetLoginPage_NoUser() {
 	s.Contains(resp.Body.String(), "User Login")
 }
 
-func (s *userControllerTestSuite) TestGetLoginPage_WithUser() {
+func (s *userControllerSuite) TestGetLoginPage_WithUser() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/user/login", nil)
 	req.AddCookie(&http.Cookie{
@@ -107,7 +107,7 @@ func (s *userControllerTestSuite) TestGetLoginPage_WithUser() {
 	s.NotContains(resp.Body.String(), "User Login")
 }
 
-func (s *userControllerTestSuite) TestGetProfilePage_NoUser() {
+func (s *userControllerSuite) TestGetProfilePage_NoUser() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/user/profile", nil)
 	resp := httptest.NewRecorder()
@@ -120,7 +120,7 @@ func (s *userControllerTestSuite) TestGetProfilePage_NoUser() {
 	s.Contains(resp.Body.String(), "User is not logged in.")
 }
 
-func (s *userControllerTestSuite) TestGetProfilePage_WithUser() {
+func (s *userControllerSuite) TestGetProfilePage_WithUser() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/user/profile", nil)
 	req.AddCookie(&http.Cookie{
@@ -138,5 +138,5 @@ func (s *userControllerTestSuite) TestGetProfilePage_WithUser() {
 }
 
 func TestUserControllerTestSuite(t *testing.T) {
-	suite.Run(t, new(userControllerTestSuite))
+	suite.Run(t, new(userControllerSuite))
 }

@@ -40,25 +40,25 @@ func setupAuthRouter(mockRepo repository.AuthRepository) *gin.Engine {
 
 // Suite
 
-type authControllerTestSuite struct {
+type authControllerSuite struct {
 	suite.Suite
 	mockRepo *mocks.AuthRepoMock
 	router   *gin.Engine
 	token    string
 }
 
-func (s *authControllerTestSuite) SetupSuite() {
+func (s *authControllerSuite) SetupSuite() {
 	var err error
 	s.token, err = createTokenMock()
 	s.Require().NoError(err)
 }
 
-func (s *authControllerTestSuite) SetupTest() {
+func (s *authControllerSuite) SetupTest() {
 	s.mockRepo = new(mocks.AuthRepoMock)
 	s.router = setupAuthRouter(s.mockRepo)
 }
 
-func (s *authControllerTestSuite) newRequest(method, path string, body io.Reader) *http.Request {
+func (s *authControllerSuite) newRequest(method, path string, body io.Reader) *http.Request {
 	req := httptest.NewRequest(method, path, body)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -69,7 +69,7 @@ func (s *authControllerTestSuite) newRequest(method, path string, body io.Reader
 
 // Tests
 
-func (s *authControllerTestSuite) TestLogin_NoData() {
+func (s *authControllerSuite) TestLogin_NoData() {
 	// Arrange
 	resp := httptest.NewRecorder()
 	req := s.newRequest("POST", "/auth/login", nil)
@@ -82,7 +82,7 @@ func (s *authControllerTestSuite) TestLogin_NoData() {
 	s.Contains(resp.Body.String(), "Invalid form data. Please fill all required fields.")
 }
 
-func (s *authControllerTestSuite) TestLogin_UnableToGetUser() {
+func (s *authControllerSuite) TestLogin_UnableToGetUser() {
 	// Arrange
 	s.mockRepo.On("GetUser", mock.Anything).Return(model.User{}, assert.AnError)
 
@@ -101,7 +101,7 @@ func (s *authControllerTestSuite) TestLogin_UnableToGetUser() {
 	s.Contains(resp.Body.String(), "Invalid email or password.")
 }
 
-func (s *authControllerTestSuite) TestLogin_WithData() {
+func (s *authControllerSuite) TestLogin_WithData() {
 	// Arrange
 	s.mockRepo.On("GetUser", mock.Anything).Return(mocks.GetTestUser(), nil)
 
@@ -122,7 +122,7 @@ func (s *authControllerTestSuite) TestLogin_WithData() {
 	}
 }
 
-func (s *authControllerTestSuite) TestRegister_NoData() {
+func (s *authControllerSuite) TestRegister_NoData() {
 	// Arrange
 	resp := httptest.NewRecorder()
 	req := s.newRequest("POST", "/auth/signup", nil)
@@ -135,7 +135,7 @@ func (s *authControllerTestSuite) TestRegister_NoData() {
 	s.Contains(resp.Body.String(), "Invalid form data. Please fill all required fields.")
 }
 
-func (s *authControllerTestSuite) TestRegister_UnableToInsertUser() {
+func (s *authControllerSuite) TestRegister_UnableToInsertUser() {
 	// Arrange
 	s.mockRepo.On("InsertUser", mock.Anything).Return(assert.AnError)
 
@@ -157,7 +157,7 @@ func (s *authControllerTestSuite) TestRegister_UnableToInsertUser() {
 	s.Contains(resp.Body.String(), "Cannot register user. Please try again later.")
 }
 
-func (s *authControllerTestSuite) TestRegister_WithData() {
+func (s *authControllerSuite) TestRegister_WithData() {
 	// Arrange
 	s.mockRepo.On("InsertUser", mock.Anything).Return(nil)
 
@@ -181,7 +181,7 @@ func (s *authControllerTestSuite) TestRegister_WithData() {
 	}
 }
 
-func (s *authControllerTestSuite) TestLogout_WithToken() {
+func (s *authControllerSuite) TestLogout_WithToken() {
 	// Arrange
 	resp := httptest.NewRecorder()
 	req := s.newRequest("POST", "/auth/logout", nil)
@@ -202,7 +202,7 @@ func (s *authControllerTestSuite) TestLogout_WithToken() {
 	}
 }
 
-func (s *authControllerTestSuite) TestLogout_NoToken() {
+func (s *authControllerSuite) TestLogout_NoToken() {
 	// Arrange
 	resp := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/auth/logout", nil)
@@ -216,5 +216,5 @@ func (s *authControllerTestSuite) TestLogout_NoToken() {
 }
 
 func TestAuthControllerTestSuite(t *testing.T) {
-	suite.Run(t, new(authControllerTestSuite))
+	suite.Run(t, new(authControllerSuite))
 }

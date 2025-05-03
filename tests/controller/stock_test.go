@@ -38,25 +38,25 @@ func setupFlowersRouter(mockRepo repository.StockRepository) *gin.Engine {
 
 // Suite
 
-type stockControllerTestSuite struct {
+type stockControllerSuite struct {
 	suite.Suite
 	mockRepo *mocks.StockRepoMock
 	router   *gin.Engine
 	token    string
 }
 
-func (s *stockControllerTestSuite) SetupSuite() {
+func (s *stockControllerSuite) SetupSuite() {
 	var err error
 	s.token, err = createTokenMock()
 	s.Require().NoError(err)
 }
 
-func (s *stockControllerTestSuite) SetupTest() {
+func (s *stockControllerSuite) SetupTest() {
 	s.mockRepo = new(mocks.StockRepoMock)
 	s.router = setupFlowersRouter(s.mockRepo)
 }
 
-func (s *stockControllerTestSuite) newRequest(method, path string, body io.Reader) *http.Request {
+func (s *stockControllerSuite) newRequest(method, path string, body io.Reader) *http.Request {
 	req := httptest.NewRequest(method, path, body)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -67,7 +67,7 @@ func (s *stockControllerTestSuite) newRequest(method, path string, body io.Reade
 
 // Tests
 
-func (s *stockControllerTestSuite) TestGetFlowers_MapsDataCorrectly() {
+func (s *stockControllerSuite) TestGetFlowers_MapsDataCorrectly() {
 	// Arrange
 	s.mockRepo.On("GetFlowers", mock.Anything).Return(mocks.GetFlowers(), nil)
 
@@ -95,7 +95,7 @@ func (s *stockControllerTestSuite) TestGetFlowers_MapsDataCorrectly() {
 	s.Contains(body, "Available: Yes")
 }
 
-func (s *stockControllerTestSuite) TestGetFlowers_UnableToGetFlowers() {
+func (s *stockControllerSuite) TestGetFlowers_UnableToGetFlowers() {
 	// Arrange
 	s.mockRepo.On("GetFlowers", mock.Anything).Return([]model.Flower{}, assert.AnError)
 
@@ -110,7 +110,7 @@ func (s *stockControllerTestSuite) TestGetFlowers_UnableToGetFlowers() {
 	s.Contains(resp.Body.String(), "Failed to load products. Please try again later.")
 }
 
-func (s *stockControllerTestSuite) TestRemoveFlower_WrongId() {
+func (s *stockControllerSuite) TestRemoveFlower_WrongId() {
 	// Arrange
 	resp := httptest.NewRecorder()
 	req := s.newRequest("DELETE", "/flowers/asd", nil)
@@ -123,7 +123,7 @@ func (s *stockControllerTestSuite) TestRemoveFlower_WrongId() {
 	s.Contains(resp.Body.String(), "Wrong flower ID.")
 }
 
-func (s *stockControllerTestSuite) TestRemoveFlower_UnableToRemoveFlower() {
+func (s *stockControllerSuite) TestRemoveFlower_UnableToRemoveFlower() {
 	// Arrange
 	s.mockRepo.On("RemoveFlower", mock.Anything).Return(assert.AnError)
 
@@ -138,7 +138,7 @@ func (s *stockControllerTestSuite) TestRemoveFlower_UnableToRemoveFlower() {
 	s.Contains(resp.Body.String(), "Error deleting flower. Please try again later.")
 }
 
-func (s *stockControllerTestSuite) TestRemoveFlower_ValidData() {
+func (s *stockControllerSuite) TestRemoveFlower_ValidData() {
 	// Arrange
 	s.mockRepo.On("RemoveFlower", mock.Anything).Return(nil)
 
@@ -152,7 +152,7 @@ func (s *stockControllerTestSuite) TestRemoveFlower_ValidData() {
 	s.Equal(http.StatusOK, resp.Code)
 }
 
-func (s *stockControllerTestSuite) TestAddFlower_MapsDataCorrectly() {
+func (s *stockControllerSuite) TestAddFlower_MapsDataCorrectly() {
 	// Arrange
 	s.mockRepo.On("AddFlower", mock.Anything, mock.Anything).Return(nil)
 
@@ -175,7 +175,7 @@ func (s *stockControllerTestSuite) TestAddFlower_MapsDataCorrectly() {
 	s.Contains(body, "Available: Yes")
 }
 
-func (s *stockControllerTestSuite) TestAddFlower_WithMissingOptionalData() {
+func (s *stockControllerSuite) TestAddFlower_WithMissingOptionalData() {
 	// Arrange
 	s.mockRepo.On("AddFlower", mock.Anything, mock.Anything).Return(nil)
 
@@ -196,7 +196,7 @@ func (s *stockControllerTestSuite) TestAddFlower_WithMissingOptionalData() {
 	s.Contains(body, "Available: No")
 }
 
-func (s *stockControllerTestSuite) TestAddFlower_NoData() {
+func (s *stockControllerSuite) TestAddFlower_NoData() {
 	// Arrange
 	resp := httptest.NewRecorder()
 	req := s.newRequest("POST", "/flowers/", nil)
@@ -210,5 +210,5 @@ func (s *stockControllerTestSuite) TestAddFlower_NoData() {
 }
 
 func TestStockControllerTestSuite(t *testing.T) {
-	suite.Run(t, new(stockControllerTestSuite))
+	suite.Run(t, new(stockControllerSuite))
 }

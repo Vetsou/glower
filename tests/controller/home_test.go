@@ -27,18 +27,18 @@ func setupHomeRouter() *gin.Engine {
 
 // Suite
 
-type homeControllerTestSuite struct {
+type homeControllerSuite struct {
 	suite.Suite
 	router *gin.Engine
 }
 
-func (s *homeControllerTestSuite) SetupSuite() {
+func (s *homeControllerSuite) SetupSuite() {
 	s.router = setupHomeRouter()
 }
 
 // Tests
 
-func (s *homeControllerTestSuite) TestGetHomePage_NoOper() {
+func (s *homeControllerSuite) TestGetHomePage_NoOper() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/", nil)
 	resp := httptest.NewRecorder()
@@ -55,7 +55,7 @@ func (s *homeControllerTestSuite) TestGetHomePage_NoOper() {
 	s.NotContains(body, "Registration successful.")
 }
 
-func (s *homeControllerTestSuite) TestGetHomePage_Logout() {
+func (s *homeControllerSuite) TestGetHomePage_Logout() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/?oper=logout", nil)
 	resp := httptest.NewRecorder()
@@ -68,7 +68,7 @@ func (s *homeControllerTestSuite) TestGetHomePage_Logout() {
 	s.Contains(resp.Body.String(), "You have successfully logged out.")
 }
 
-func (s *homeControllerTestSuite) TestGetHomePage_Login() {
+func (s *homeControllerSuite) TestGetHomePage_Login() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/?oper=login", nil)
 	resp := httptest.NewRecorder()
@@ -81,7 +81,7 @@ func (s *homeControllerTestSuite) TestGetHomePage_Login() {
 	s.Contains(resp.Body.String(), "You have successfully logged in.")
 }
 
-func (s *homeControllerTestSuite) TestGetHomePage_Register() {
+func (s *homeControllerSuite) TestGetHomePage_Register() {
 	// Arrange
 	req, _ := http.NewRequest("GET", "/?oper=register", nil)
 	resp := httptest.NewRecorder()
@@ -95,5 +95,5 @@ func (s *homeControllerTestSuite) TestGetHomePage_Register() {
 }
 
 func TestHomeControllerTestSuite(t *testing.T) {
-	suite.Run(t, new(homeControllerTestSuite))
+	suite.Run(t, new(homeControllerSuite))
 }

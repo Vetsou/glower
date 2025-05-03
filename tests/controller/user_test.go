@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 // Setup
@@ -29,109 +29,114 @@ func setupUserRouter() *gin.Engine {
 	return r
 }
 
+// Suite
+
+type userControllerTestSuite struct {
+	suite.Suite
+	router *gin.Engine
+	token  string
+}
+
+func (s *userControllerTestSuite) SetupSuite() {
+	s.router = setupUserRouter()
+
+	var err error
+	s.token, err = createTokenMock()
+	s.Require().NoError(err)
+}
+
 // Tests
 
-func TestGetRegisterPage_NoUser(t *testing.T) {
+func (s *userControllerTestSuite) TestGetRegisterPage_NoUser() {
 	// Arrange
-	router := setupUserRouter()
 	req, _ := http.NewRequest("GET", "/user/register", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, resp.Body.String(), "User Register")
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "User Register")
 }
 
-func TestGetRegisterPage_WithUser(t *testing.T) {
+func (s *userControllerTestSuite) TestGetRegisterPage_WithUser() {
 	// Arrange
-	router := setupUserRouter()
-	token, err := createTokenMock()
-	assert.NoError(t, err)
-
 	req, _ := http.NewRequest("GET", "/user/register", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  auth.AccessTokenName,
-		Value: token,
+		Value: s.token,
 	})
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusFound, resp.Code)
-	assert.NotContains(t, resp.Body.String(), "User Register")
+	s.Equal(http.StatusFound, resp.Code)
+	s.NotContains(resp.Body.String(), "User Register")
 }
 
-func TestGetLoginPage_NoUser(t *testing.T) {
+func (s *userControllerTestSuite) TestGetLoginPage_NoUser() {
 	// Arrange
-	router := setupUserRouter()
 	req, _ := http.NewRequest("GET", "/user/login", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, resp.Body.String(), "User Login")
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "User Login")
 }
 
-func TestGetLoginPage_WithUser(t *testing.T) {
+func (s *userControllerTestSuite) TestGetLoginPage_WithUser() {
 	// Arrange
-	router := setupUserRouter()
-	token, err := createTokenMock()
-	assert.NoError(t, err)
-
 	req, _ := http.NewRequest("GET", "/user/login", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  auth.AccessTokenName,
-		Value: token,
+		Value: s.token,
 	})
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusFound, resp.Code)
-	assert.NotContains(t, resp.Body.String(), "User Login")
+	s.Equal(http.StatusFound, resp.Code)
+	s.NotContains(resp.Body.String(), "User Login")
 }
 
-func TestGetProfilePage_NoUser(t *testing.T) {
+func (s *userControllerTestSuite) TestGetProfilePage_NoUser() {
 	// Arrange
-	router := setupUserRouter()
 	req, _ := http.NewRequest("GET", "/user/profile", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusUnauthorized, resp.Code)
-	assert.Contains(t, resp.Body.String(), "User is not logged in.")
+	s.Equal(http.StatusUnauthorized, resp.Code)
+	s.Contains(resp.Body.String(), "User is not logged in.")
 }
 
-func TestGetProfilePage_WithUser(t *testing.T) {
+func (s *userControllerTestSuite) TestGetProfilePage_WithUser() {
 	// Arrange
-	router := setupUserRouter()
-	token, err := createTokenMock()
-	assert.NoError(t, err)
-
 	req, _ := http.NewRequest("GET", "/user/profile", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  auth.AccessTokenName,
-		Value: token,
+		Value: s.token,
 	})
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, resp.Body.String(), "User name: Test User")
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "User name: Test User")
+}
+
+func TestUserControllerTestSuite(t *testing.T) {
+	suite.Run(t, new(userControllerTestSuite))
 }

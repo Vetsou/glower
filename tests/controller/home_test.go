@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 // Setup
@@ -25,62 +25,75 @@ func setupHomeRouter() *gin.Engine {
 	return r
 }
 
+// Suite
+
+type homeControllerTestSuite struct {
+	suite.Suite
+	router *gin.Engine
+}
+
+func (s *homeControllerTestSuite) SetupSuite() {
+	s.router = setupHomeRouter()
+}
+
 // Tests
 
-func TestGetHomePage_NoOper(t *testing.T) {
+func (s *homeControllerTestSuite) TestGetHomePage_NoOper() {
 	// Arrange
-	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.NotContains(t, resp.Body.String(), "logged out.")
-	assert.NotContains(t, resp.Body.String(), "logged in.")
-	assert.NotContains(t, resp.Body.String(), "Registration successful.")
+	s.Equal(http.StatusOK, resp.Code)
+	body := resp.Body.String()
+
+	s.NotContains(body, "logged out.")
+	s.NotContains(body, "logged in.")
+	s.NotContains(body, "Registration successful.")
 }
 
-func TestGetHomePage_Logout(t *testing.T) {
+func (s *homeControllerTestSuite) TestGetHomePage_Logout() {
 	// Arrange
-	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/?oper=logout", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, resp.Body.String(), "You have successfully logged out.")
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "You have successfully logged out.")
 }
 
-func TestGetHomePage_Login(t *testing.T) {
+func (s *homeControllerTestSuite) TestGetHomePage_Login() {
 	// Arrange
-	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/?oper=login", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, resp.Body.String(), "You have successfully logged in.")
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "You have successfully logged in.")
 }
 
-func TestGetHomePage_Register(t *testing.T) {
+func (s *homeControllerTestSuite) TestGetHomePage_Register() {
 	// Arrange
-	router := setupHomeRouter()
 	req, _ := http.NewRequest("GET", "/?oper=register", nil)
 	resp := httptest.NewRecorder()
 
 	// Act
-	router.ServeHTTP(resp, req)
+	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, resp.Body.String(), "Registration successful. Please log in to continue.")
+	s.Equal(http.StatusOK, resp.Code)
+	s.Contains(resp.Body.String(), "Registration successful. Please log in to continue.")
+}
+
+func TestHomeControllerTestSuite(t *testing.T) {
+	suite.Run(t, new(homeControllerTestSuite))
 }

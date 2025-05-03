@@ -36,3 +36,7 @@ jobs:
     - name: Build service
       run: |
         go build -v main.go
+
+    - name: Run tests
+      run: |
+        go test -v ./tests/...

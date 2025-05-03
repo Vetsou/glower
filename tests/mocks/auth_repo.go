@@ -24,17 +24,17 @@ const (
 	WrongCredentialsMsg = "Invalid email or password."
 	WrongFormatMsg      = "Invalid form data. Please fill all required fields."
 
-	CorrectEmail    = "test@example.com"
-	CorrectPassword = "Password123"
+	CorrectLoginEmail    = "test@example.com"
+	CorrectLoginPassword = "Password123"
 )
 
 func GetTestUser() model.User {
-	hashedPass, _ := bcrypt.GenerateFromPassword([]byte(CorrectPassword), bcrypt.DefaultCost)
+	hashedPass, _ := bcrypt.GenerateFromPassword([]byte(CorrectLoginPassword), bcrypt.DefaultCost)
 
 	user := model.User{
 		FirstName:    "FirstNameTest",
 		LastName:     "LastNameTest",
-		Email:        CorrectEmail,
+		Email:        CorrectLoginEmail,
 		PasswordHash: hashedPass,
 	}
 	return user
@@ -48,14 +48,14 @@ type LoginTestData struct {
 
 func GetLoginDataTestCases() []LoginTestData {
 	return []LoginTestData{
-		{CorrectEmail, CorrectPassword, http.StatusOK, ""},
-		{CorrectEmail, "wrongPass", http.StatusUnauthorized, WrongCredentialsMsg},
+		{CorrectLoginEmail, CorrectLoginPassword, http.StatusOK, ""},
+		{CorrectLoginEmail, "wrongPass", http.StatusUnauthorized, WrongCredentialsMsg},
 		{"", "", http.StatusBadRequest, WrongFormatMsg},
-		{CorrectEmail, "", http.StatusBadRequest, WrongFormatMsg},
-		{"", CorrectPassword, http.StatusBadRequest, WrongFormatMsg},
-		{"test_example.com", CorrectPassword, http.StatusBadRequest, WrongFormatMsg},
-		{"testexample.com", CorrectPassword, http.StatusBadRequest, WrongFormatMsg},
-		{"test@example", CorrectPassword, http.StatusBadRequest, WrongFormatMsg},
+		{CorrectLoginEmail, "", http.StatusBadRequest, WrongFormatMsg},
+		{"", CorrectLoginPassword, http.StatusBadRequest, WrongFormatMsg},
+		{"test_example.com", CorrectLoginPassword, http.StatusBadRequest, WrongFormatMsg},
+		{"testexample.com", CorrectLoginPassword, http.StatusBadRequest, WrongFormatMsg},
+		{"test@example", CorrectLoginPassword, http.StatusBadRequest, WrongFormatMsg},
 	}
 }
 

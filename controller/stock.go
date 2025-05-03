@@ -6,6 +6,7 @@ import (
 	"glower/database/model"
 	"glower/database/repository"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -77,9 +78,16 @@ func CreateAddFlower(factory repository.StockRepoFactory) gin.HandlerFunc {
 
 func CreateRemoveFlower(factory repository.StockRepoFactory) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		idParam := c.Params.ByName("id")
+		flowerId, err := strconv.ParseUint(idParam, 10, 64)
+		if err != nil {
+			internal.SetPartialError(c, http.StatusBadRequest, "Wrong flower ID.")
+			return
+		}
+
 		repo := factory(c)
 
-		if err := repo.RemoveFlower(c.Param("id")); err != nil {
+		if err := repo.RemoveFlower(uint(flowerId)); err != nil {
 			internal.SetPartialError(c, http.StatusInternalServerError, "Error deleting flower. Please try again later.")
 			return
 		}

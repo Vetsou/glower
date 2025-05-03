@@ -7,9 +7,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type CartRepoMock struct {
-	mock.Mock
-}
+type CartRepoMock struct{ mock.Mock }
 
 func (r *CartRepoMock) GetUserCart(userId uint) (model.Cart, error) {
 	args := r.Called(userId)

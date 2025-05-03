@@ -40,25 +40,25 @@ func setupCartRouter(mockRepo repository.CartRepository) *gin.Engine {
 
 // Suite
 
-type CartControllerTestSuite struct {
+type cartControllerTestSuite struct {
 	suite.Suite
 	mockRepo *mocks.CartRepoMock
 	router   *gin.Engine
 	token    string
 }
 
-func (s *CartControllerTestSuite) SetupSuite() {
+func (s *cartControllerTestSuite) SetupSuite() {
 	var err error
 	s.token, err = createTokenMock()
 	s.Require().NoError(err)
 }
 
-func (s *CartControllerTestSuite) SetupTest() {
+func (s *cartControllerTestSuite) SetupTest() {
 	s.mockRepo = new(mocks.CartRepoMock)
 	s.router = setupCartRouter(s.mockRepo)
 }
 
-func (s *CartControllerTestSuite) newRequest(method, path string, body io.Reader) *http.Request {
+func (s *cartControllerTestSuite) newRequest(method, path string, body io.Reader) *http.Request {
 	req := httptest.NewRequest(method, path, body)
 	if body != nil {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -69,7 +69,7 @@ func (s *CartControllerTestSuite) newRequest(method, path string, body io.Reader
 
 // Tests
 
-func (s *CartControllerTestSuite) TestGetCartItems_MapsDataCorrectly() {
+func (s *cartControllerTestSuite) TestGetCartItems_MapsDataCorrectly() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("GetCartItems", mock.Anything).Return(mocks.GetTestCartItems(), nil)
@@ -96,7 +96,7 @@ func (s *CartControllerTestSuite) TestGetCartItems_MapsDataCorrectly() {
 	s.Contains(body, "Total Price: $21.97")
 }
 
-func (s *CartControllerTestSuite) TestGetCartItems_EmptyCart() {
+func (s *cartControllerTestSuite) TestGetCartItems_EmptyCart() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("GetCartItems", mock.Anything).Return(mocks.GetEmptyCartItems(), nil)
@@ -112,7 +112,7 @@ func (s *CartControllerTestSuite) TestGetCartItems_EmptyCart() {
 	s.Contains(resp.Body.String(), "Your cart is empty.")
 }
 
-func (s *CartControllerTestSuite) TestGetCartItems_UserCartError() {
+func (s *cartControllerTestSuite) TestGetCartItems_UserCartError() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
 
@@ -127,7 +127,7 @@ func (s *CartControllerTestSuite) TestGetCartItems_UserCartError() {
 	s.Contains(resp.Body.String(), "Unable to load your cart.")
 }
 
-func (s *CartControllerTestSuite) TestGetCartItems_CartItemsError() {
+func (s *cartControllerTestSuite) TestGetCartItems_CartItemsError() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("GetCartItems", mock.Anything).Return([]model.CartItem{}, assert.AnError)
@@ -143,7 +143,7 @@ func (s *CartControllerTestSuite) TestGetCartItems_CartItemsError() {
 	s.Contains(resp.Body.String(), "Unable to load your cart items.")
 }
 
-func (s *CartControllerTestSuite) TestAddCartItem_WithCorrectData() {
+func (s *cartControllerTestSuite) TestAddCartItem_WithCorrectData() {
 	// Arrange
 	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
@@ -163,7 +163,7 @@ func (s *CartControllerTestSuite) TestAddCartItem_WithCorrectData() {
 	s.Contains(resp.Body.String(), "Flower Sunflower was added to your cart. You currently have 1 Sunflower in your cart.")
 }
 
-func (s *CartControllerTestSuite) TestAddCartItem_InvalidFlowerID() {
+func (s *cartControllerTestSuite) TestAddCartItem_InvalidFlowerID() {
 	// Arrange
 	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(model.Flower{}, assert.AnError)
 
@@ -181,7 +181,7 @@ func (s *CartControllerTestSuite) TestAddCartItem_InvalidFlowerID() {
 	s.Contains(resp.Body.String(), "The requested flower is unavailable.")
 }
 
-func (s *CartControllerTestSuite) TestAddCartItem_FlowerUnavailable() {
+func (s *cartControllerTestSuite) TestAddCartItem_FlowerUnavailable() {
 	// Arrange
 	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(false), nil)
 
@@ -199,7 +199,7 @@ func (s *CartControllerTestSuite) TestAddCartItem_FlowerUnavailable() {
 	s.Contains(resp.Body.String(), "This flower is no longer available for purchase.")
 }
 
-func (s *CartControllerTestSuite) TestAddCartItem_UnableToLoadCart() {
+func (s *cartControllerTestSuite) TestAddCartItem_UnableToLoadCart() {
 	// Arrange
 	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
@@ -218,7 +218,7 @@ func (s *CartControllerTestSuite) TestAddCartItem_UnableToLoadCart() {
 	s.Contains(resp.Body.String(), "Unable to load your cart.")
 }
 
-func (s *CartControllerTestSuite) TestAddCartItem_UnableToAddCartItem() {
+func (s *cartControllerTestSuite) TestAddCartItem_UnableToAddCartItem() {
 	// Arrange
 	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
@@ -238,7 +238,7 @@ func (s *CartControllerTestSuite) TestAddCartItem_UnableToAddCartItem() {
 	s.Contains(resp.Body.String(), "Unable to load your cart items.")
 }
 
-func (s *CartControllerTestSuite) TestRemoveCartItem_ValidRequest() {
+func (s *cartControllerTestSuite) TestRemoveCartItem_ValidRequest() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)
@@ -254,7 +254,7 @@ func (s *CartControllerTestSuite) TestRemoveCartItem_ValidRequest() {
 	s.Contains(resp.Body.String(), "Item was removed from your cart.")
 }
 
-func (s *CartControllerTestSuite) TestRemoveCartItem_WrongId() {
+func (s *cartControllerTestSuite) TestRemoveCartItem_WrongId() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)
@@ -270,7 +270,7 @@ func (s *CartControllerTestSuite) TestRemoveCartItem_WrongId() {
 	s.Contains(resp.Body.String(), "Wrong cart item ID.")
 }
 
-func (s *CartControllerTestSuite) TestRemoveCartItem_UnableToLoadCart() {
+func (s *cartControllerTestSuite) TestRemoveCartItem_UnableToLoadCart() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
 	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)
@@ -286,7 +286,7 @@ func (s *CartControllerTestSuite) TestRemoveCartItem_UnableToLoadCart() {
 	s.Contains(resp.Body.String(), "Unable to load your cart.")
 }
 
-func (s *CartControllerTestSuite) TestRemoveCartItem_UnableToRemoveCartItem() {
+func (s *cartControllerTestSuite) TestRemoveCartItem_UnableToRemoveCartItem() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(assert.AnError)
@@ -303,5 +303,5 @@ func (s *CartControllerTestSuite) TestRemoveCartItem_UnableToRemoveCartItem() {
 }
 
 func TestCartControllerTestSuite(t *testing.T) {
-	suite.Run(t, new(CartControllerTestSuite))
+	suite.Run(t, new(cartControllerTestSuite))
 }

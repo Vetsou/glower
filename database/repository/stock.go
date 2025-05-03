@@ -20,7 +20,7 @@ func CreateStockRepoFactory() StockRepoFactory {
 type StockRepository interface {
 	GetFlowers() ([]model.Flower, error)
 	AddFlower(flower model.Flower, flowerStock uint) error
-	RemoveFlower(id string) error
+	RemoveFlower(id uint) error
 }
 
 type stockRepo struct {
@@ -59,7 +59,7 @@ func (r *stockRepo) AddFlower(flower model.Flower, count uint) error {
 	return nil
 }
 
-func (r *stockRepo) RemoveFlower(id string) error {
+func (r *stockRepo) RemoveFlower(id uint) error {
 	err := r.db.
 		Select(clause.Associations).
 		Delete(&model.Flower{}, id).Error

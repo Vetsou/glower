@@ -81,6 +81,7 @@ func CreateRegister(factory repository.AuthRepoFactory) gin.HandlerFunc {
 			LastName:     formData.LastName,
 			Email:        formData.Email,
 			PasswordHash: hashedPass,
+			Role:         model.RoleUser,
 		}
 
 		repo := factory(c)
@@ -118,7 +119,7 @@ func CreateLogin(factory repository.AuthRepoFactory) gin.HandlerFunc {
 			return
 		}
 
-		accessToken, err := auth.CreateJWT(user, user.Email)
+		accessToken, err := auth.CreateJWT(user)
 		if err != nil {
 			internal.SetPartialError(c, http.StatusInternalServerError, "An internal error occurred while processing your login. Please try again later.")
 			return

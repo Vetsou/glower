@@ -13,7 +13,8 @@ func createTokenMock() (string, error) {
 	user := model.User{
 		FirstName: "Test",
 		LastName:  "User",
+		Role:      model.RoleAdmin,
 	}
 
-	return auth.CreateJWT(user, "test@example.com")
+	return auth.CreateJWT(user)
 }

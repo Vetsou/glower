@@ -27,12 +27,13 @@ type UserTokenData struct {
 	User string
 }
 
-func CreateJWT(user model.User, email string) (string, error) {
+func CreateJWT(user model.User) (string, error) {
 	claims := jwt.MapClaims{
 		"exp": time.Now().Add(15 * time.Minute).Unix(),
 		"data": map[string]string{
 			"id":   fmt.Sprintf("%d", user.ID),
 			"user": user.FirstName + " " + user.LastName,
+			"role": string(user.Role),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

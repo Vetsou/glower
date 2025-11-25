@@ -60,28 +60,26 @@ func (r *cartRepo) GetUserCart(userId uint) (model.Cart, error) {
 
 func (r *cartRepo) AddOrUpdateCartItem(cartID, flowerID uint) (model.CartItem, error) {
 	var cartItem model.CartItem
-	err := r.db.Model(&model.CartItem{}).
+	res := r.db.Model(&model.CartItem{}).
 		Where("cart_id = ? AND flower_id = ?", cartID, flowerID).
-		First(&cartItem).Error
+		UpdateColumn("Quantity", gorm.Expr("Quantity + ?", 1))
 
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			cartItem = model.CartItem{
-				CartID:   cartID,
-				FlowerID: flowerID,
-				Quantity: 1,
-			}
+	if res.Error != nil {
+		return model.CartItem{}, fmt.Errorf("failed to update cart item: %w", res.Error)
+	}
 
-			if err := r.db.Create(&cartItem).Error; err != nil {
-				return model.CartItem{}, fmt.Errorf("failed to create cart item: %w", err)
-			}
-		} else {
-			return model.CartItem{}, fmt.Errorf("failed to query cart item: %w", err)
+	if res.RowsAffected == 0 {
+		cartItem = model.CartItem{
+			CartID:   cartID,
+			FlowerID: flowerID,
+			Quantity: 1,
+		}
+		if err := r.db.Create(&cartItem).Error; err != nil {
+			return model.CartItem{}, fmt.Errorf("failed to create cart item: %w", err)
 		}
 	} else {
-		cartItem.Quantity++
-		if err := r.db.Save(&cartItem).Error; err != nil {
-			return model.CartItem{}, fmt.Errorf("failed to update cart item: %w", err)
+		if err := r.db.Where("cart_id = ? AND flower_id = ?", cartID, flowerID).First(&cartItem).Error; err != nil {
+			return model.CartItem{}, fmt.Errorf("failed to fetch updated cart item: %w", err)
 		}
 	}
 

@@ -2,6 +2,7 @@ package public
 
 import (
 	"glower/controller"
+	"glower/database/model"
 	"glower/database/repository"
 	"glower/middleware"
 
@@ -10,22 +11,14 @@ import (
 )
 
 func RegisterCart(e *gin.Engine, db *gorm.DB) {
-	flowersGroup := e.Group("/cart")
+	flowersGroup := e.Group("/cart",
+		middleware.CreateAuth(true),
+		middleware.CreateRolesAuth(model.RoleUser),
+		middleware.CreateTransaction(db))
 
 	factory := repository.CreateCartRepoFactory()
 
-	flowersGroup.GET("/",
-		middleware.CreateAuth(true),
-		middleware.CreateTransaction(db),
-		controller.CreateGetCartItems(factory))
-
-	flowersGroup.POST("/",
-		middleware.CreateAuth(true),
-		middleware.CreateTransaction(db),
-		controller.CreateAddCartItem(factory))
-
-	flowersGroup.DELETE("/:id",
-		middleware.CreateAuth(true),
-		middleware.CreateTransaction(db),
-		controller.CreateRemoveCartItem(factory))
+	flowersGroup.GET("/", controller.CreateGetCartItems(factory))
+	flowersGroup.POST("/", controller.CreateAddCartItem(factory))
+	flowersGroup.DELETE("/:id", controller.CreateRemoveCartItem(factory))
 }

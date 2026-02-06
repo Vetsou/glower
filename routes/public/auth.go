@@ -14,7 +14,15 @@ func RegisterAuth(e *gin.Engine, db *gorm.DB) {
 
 	factory := repository.CreateAuthRepoFactory()
 
-	authGroup.POST("/signup", middleware.CreateTransaction(db), controller.CreateRegister(factory))
-	authGroup.POST("/login", middleware.CreateTransaction(db), controller.CreateLogin(factory))
-	authGroup.POST("/logout", middleware.CreateAuth(true), controller.CreateLogout())
+	authGroup.POST("/signup",
+		middleware.CreateTransaction(db),
+		controller.CreateRegister(factory))
+
+	authGroup.POST("/login",
+		middleware.CreateTransaction(db),
+		controller.CreateLogin(factory))
+
+	authGroup.POST("/logout",
+		middleware.CreateAuth(true),
+		controller.CreateLogout())
 }

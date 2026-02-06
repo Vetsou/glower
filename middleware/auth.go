@@ -41,6 +41,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 
 		c.Set("id", userData.Id)
 		c.Set("user", userData.User)
+		c.Set("role", userData.Role)
 		c.Next()
 	}
 }

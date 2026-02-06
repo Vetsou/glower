@@ -25,6 +25,7 @@ var (
 type UserTokenData struct {
 	Id   uint
 	User string
+	Role model.Role
 }
 
 func CreateJWT(user model.User) (string, error) {
@@ -84,6 +85,7 @@ func GetUserClaims(claims *jwt.MapClaims) (UserTokenData, error) {
 	userData := UserTokenData{
 		Id:   uint(userId),
 		User: tokenData["user"].(string),
+		Role: model.Role(tokenData["role"].(string)),
 	}
 
 	return userData, nil

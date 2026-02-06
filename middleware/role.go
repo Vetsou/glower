@@ -28,6 +28,6 @@ func CreateRolesAuth(allowedRoles ...model.Role) gin.HandlerFunc {
 			}
 		}
 
-		RenderResponse(c, http.StatusForbidden, "You don't have permission to view this page.")
+		RenderResponse(c, http.StatusForbidden, "You don't have the right permissions.")
 	}
 }

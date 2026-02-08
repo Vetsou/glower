@@ -1,8 +1,8 @@
-package middleware
+package internal
 
 import "github.com/gin-gonic/gin"
 
-func RenderResponse(c *gin.Context, code int, msg string) {
+func RenderErrorResponse(c *gin.Context, code int, msg string) {
 	isHTMX := c.Request.Header.Get("HX-Request") == "true"
 
 	if isHTMX {

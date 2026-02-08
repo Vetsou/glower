@@ -1,4 +1,4 @@
-package controller
+package mocks
 
 import (
 	"glower/auth"
@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func createTokenMock() (string, error) {
+func CreateTokenMock() (string, error) {
 	os.Setenv("ACCESS_TOKEN_SECRET", "test-access-token-value")
 	os.Setenv("REFRESH_TOKEN_SECRET", "test-refresh-token-value")
 

@@ -127,6 +127,6 @@ func (s *rolesMiddlewareSuite) TestRoles_MultipleAllowedRoles() {
 	s.Equal(http.StatusOK, w.Code)
 }
 
-func TestCartControllerTestSuite(t *testing.T) {
+func TestRoleMiddlewareTestSuite(t *testing.T) {
 	suite.Run(t, new(rolesMiddlewareSuite))
 }

@@ -50,7 +50,7 @@ type authControllerSuite struct {
 
 func (s *authControllerSuite) SetupSuite() {
 	var err error
-	s.token, err = createTokenMock()
+	s.token, err = mocks.CreateTokenMock()
 	s.Require().NoError(err)
 }
 

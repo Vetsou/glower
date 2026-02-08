@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"glower/auth"
+	"glower/middleware/internal"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 		tokenStr, err := c.Cookie(auth.AccessTokenName)
 		if err != nil {
 			if isStrict {
-				RenderResponse(c, http.StatusUnauthorized, "User is not logged in.")
+				internal.RenderErrorResponse(c, http.StatusUnauthorized, "User is not logged in.")
 				return
 			}
 			c.Next()
@@ -22,7 +23,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 		claims, err := auth.VerifyToken(tokenStr)
 		if err != nil {
 			if isStrict {
-				RenderResponse(c, http.StatusUnauthorized, "Invalid user credentials.")
+				internal.RenderErrorResponse(c, http.StatusUnauthorized, "Invalid user credentials.")
 				return
 			}
 			c.Next()
@@ -32,7 +33,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 		userData, err := auth.GetUserClaims(claims)
 		if err != nil {
 			if isStrict {
-				RenderResponse(c, http.StatusInternalServerError, "Error getting user data.")
+				internal.RenderErrorResponse(c, http.StatusInternalServerError, "Error getting user data.")
 				return
 			}
 			c.Next()

@@ -31,6 +31,7 @@ func setupAuthRouter(mockRepo repository.AuthRepository) *gin.Engine {
 
 	group := r.Group("/auth")
 	factory := func(c *gin.Context) repository.AuthRepository { return mockRepo }
+
 	group.POST("/signup", controller.CreateRegister(factory))
 	group.POST("/login", controller.CreateLogin(factory))
 	group.POST("/logout", middleware.CreateAuth(true), controller.CreateLogout())
@@ -49,7 +50,7 @@ type authControllerSuite struct {
 
 func (s *authControllerSuite) SetupSuite() {
 	var err error
-	s.token, err = createTokenMock()
+	s.token, err = mocks.CreateTokenMock()
 	s.Require().NoError(err)
 }
 

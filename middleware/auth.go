@@ -2,31 +2,18 @@ package middleware
 
 import (
 	"glower/auth"
+	"glower/middleware/internal"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-func renderResponse(c *gin.Context, code int, msg string) {
-	isHTMX := c.Request.Header.Get("HX-Request") == "true"
-
-	if isHTMX {
-		c.HTML(code, "error-alert.html", gin.H{"errorMessage": msg})
-	} else {
-		c.HTML(code, "error-page.html", gin.H{
-			"code":    code,
-			"message": msg,
-		})
-	}
-	c.Abort()
-}
 
 func CreateAuth(isStrict bool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenStr, err := c.Cookie(auth.AccessTokenName)
 		if err != nil {
 			if isStrict {
-				renderResponse(c, http.StatusUnauthorized, "User is not logged in.")
+				internal.RenderErrorResponse(c, http.StatusUnauthorized, "User is not logged in.")
 				return
 			}
 			c.Next()
@@ -36,7 +23,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 		claims, err := auth.VerifyToken(tokenStr)
 		if err != nil {
 			if isStrict {
-				renderResponse(c, http.StatusUnauthorized, "Invalid user credentials.")
+				internal.RenderErrorResponse(c, http.StatusUnauthorized, "Invalid user credentials.")
 				return
 			}
 			c.Next()
@@ -46,7 +33,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 		userData, err := auth.GetUserClaims(claims)
 		if err != nil {
 			if isStrict {
-				renderResponse(c, http.StatusInternalServerError, "Error getting user data.")
+				internal.RenderErrorResponse(c, http.StatusInternalServerError, "Error getting user data.")
 				return
 			}
 			c.Next()
@@ -55,6 +42,7 @@ func CreateAuth(isStrict bool) gin.HandlerFunc {
 
 		c.Set("id", userData.Id)
 		c.Set("user", userData.User)
+		c.Set("role", userData.Role)
 		c.Next()
 	}
 }

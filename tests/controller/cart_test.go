@@ -29,11 +29,12 @@ func setupCartRouter(mockRepo repository.CartRepository) *gin.Engine {
 	r := gin.Default()
 	initializers.InitHTMLTemplates(r, "../../")
 
-	group := r.Group("/cart")
+	group := r.Group("/cart", middleware.CreateAuth(true))
 	factory := func(c *gin.Context) repository.CartRepository { return mockRepo }
-	group.GET("/", middleware.CreateAuth(true), controller.CreateGetCartItems(factory))
-	group.POST("/", middleware.CreateAuth(true), controller.CreateAddCartItem(factory))
-	group.DELETE("/:id", middleware.CreateAuth(true), controller.CreateRemoveCartItem(factory))
+
+	group.GET("/", controller.CreateGetCartItems(factory))
+	group.POST("/", controller.CreateAddCartItem(factory))
+	group.DELETE("/:id", controller.CreateRemoveCartItem(factory))
 
 	return r
 }
@@ -49,7 +50,7 @@ type cartControllerSuite struct {
 
 func (s *cartControllerSuite) SetupSuite() {
 	var err error
-	s.token, err = createTokenMock()
+	s.token, err = mocks.CreateTokenMock()
 	s.Require().NoError(err)
 }
 
@@ -238,7 +239,7 @@ func (s *cartControllerSuite) TestAddCartItem_UnableToAddCartItem() {
 	s.Contains(resp.Body.String(), "Unable to load your cart items.")
 }
 
-func (s *cartControllerSuite) TestRemoveCartItem_ValidRequest() {
+func (s *cartControllerSuite) TestRemoveCartItem_WithCorrectData() {
 	// Arrange
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("RemoveCartItem", mock.Anything, mock.Anything).Return(nil)

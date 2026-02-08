@@ -1,4 +1,4 @@
-package controller
+package mocks
 
 import (
 	"glower/auth"
@@ -6,14 +6,15 @@ import (
 	"os"
 )
 
-func createTokenMock() (string, error) {
+func CreateTokenMock() (string, error) {
 	os.Setenv("ACCESS_TOKEN_SECRET", "test-access-token-value")
 	os.Setenv("REFRESH_TOKEN_SECRET", "test-refresh-token-value")
 
 	user := model.User{
 		FirstName: "Test",
 		LastName:  "User",
+		Role:      model.RoleAdmin,
 	}
 
-	return auth.CreateJWT(user, "test@example.com")
+	return auth.CreateJWT(user)
 }

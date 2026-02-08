@@ -19,6 +19,7 @@ func init() {
 
 func main() {
 	gin.SetMode(gin.DebugMode)
+
 	publicRouter := gin.Default()
 	initializers.RegisterServiceMiddleware(publicRouter)
 	initializers.InitHTMLTemplates(publicRouter, "")

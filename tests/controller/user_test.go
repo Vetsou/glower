@@ -5,6 +5,7 @@ import (
 	"glower/controller"
 	"glower/initializers"
 	"glower/middleware"
+	"glower/tests/mocks"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -41,7 +42,7 @@ func (s *userControllerSuite) SetupSuite() {
 	s.router = setupUserRouter()
 
 	var err error
-	s.token, err = createTokenMock()
+	s.token, err = mocks.CreateTokenMock()
 	s.Require().NoError(err)
 }
 

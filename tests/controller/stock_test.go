@@ -29,6 +29,7 @@ func setupFlowersRouter(mockRepo repository.StockRepository) *gin.Engine {
 
 	group := r.Group("/flowers")
 	factory := func(c *gin.Context) repository.StockRepository { return mockRepo }
+
 	group.GET("/", controller.CreateGetFlowers(factory))
 	group.POST("/", controller.CreateAddFlower(factory))
 	group.DELETE("/:id", controller.CreateRemoveFlower(factory))
@@ -47,7 +48,7 @@ type stockControllerSuite struct {
 
 func (s *stockControllerSuite) SetupSuite() {
 	var err error
-	s.token, err = createTokenMock()
+	s.token, err = mocks.CreateTokenMock()
 	s.Require().NoError(err)
 }
 
@@ -138,7 +139,7 @@ func (s *stockControllerSuite) TestRemoveFlower_UnableToRemoveFlower() {
 	s.Contains(resp.Body.String(), "Error deleting flower. Please try again later.")
 }
 
-func (s *stockControllerSuite) TestRemoveFlower_ValidData() {
+func (s *stockControllerSuite) TestRemoveFlower_WithCorrectData() {
 	// Arrange
 	s.mockRepo.On("RemoveFlower", mock.Anything).Return(nil)
 

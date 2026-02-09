@@ -7,28 +7,26 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
-
-var db *gorm.DB
 
 func init() {
 	initializers.LoadEnvVariables()
-	db = database.Init()
 }
 
 func main() {
 	gin.SetMode(gin.DebugMode)
 
+	db := database.Init()
+
 	publicRouter := gin.Default()
-	initializers.RegisterServiceMiddleware(publicRouter)
 	initializers.InitHTMLTemplates(publicRouter, "")
+	initializers.RegisterServiceMiddleware(publicRouter)
 	initializers.RegisterServiceRoutes(publicRouter, db)
 
 	// Run private router
 	go func() {
 		privateRouter := gin.New()
-		initializers.RegisterPrivateRoutes(privateRouter)
+		initializers.RegisterPrivateRoutes(privateRouter, db)
 
 		if err := privateRouter.Run(os.Getenv("PRIV_ADDR")); err != nil {
 			log.Fatalf("Failed to start private metrics server: %v", err)

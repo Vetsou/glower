@@ -26,6 +26,7 @@ func main() {
 	// Run private router
 	go func() {
 		privateRouter := gin.New()
+		privateRouter.Use(gin.Recovery())
 		initializers.RegisterPrivateRoutes(privateRouter, db)
 
 		if err := privateRouter.Run(os.Getenv("PRIV_ADDR")); err != nil {

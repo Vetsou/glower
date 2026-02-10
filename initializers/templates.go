@@ -9,12 +9,12 @@ import (
 
 func InitHTMLTemplates(e *gin.Engine, path string) {
 	patterns := []string{
-		path + "templates/pages/index.html",
-		path + "templates/pages/user/*",
-		path + "templates/pages/shop/*",
-		path + "templates/pages/error/*",
+		path + "assets/pages/index.html",
+		path + "assets/pages/user/*",
+		path + "assets/pages/shop/*",
+		path + "assets/pages/error/*",
 
-		path + "templates/partials/*",
+		path + "assets/partials/*",
 	}
 
 	var files []string

@@ -66,7 +66,7 @@ func TestMain(m *testing.M) {
 		}
 	}()
 
-	code := m.Run()
-
-	os.Exit(code)
+	m.Run()
 }
+
+func TestXxx(t *testing.T) {}

@@ -34,7 +34,7 @@ func (s *authMiddlewareSuite) SetupTest() {
 	gin.SetMode(gin.TestMode)
 
 	s.router = gin.New()
-	initializers.InitHTMLTemplates(s.router, "../../")
+	initializers.InitHTMLTemplates(s.router)
 }
 
 func (s *authMiddlewareSuite) doRequest(token *string) *httptest.ResponseRecorder {

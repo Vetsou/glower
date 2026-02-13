@@ -9,7 +9,7 @@ import (
 )
 
 func RegisterServiceRoutes(e *gin.Engine, db *gorm.DB) {
-	e.StaticFile("/favicon.ico", "assets/favicon.ico")
+	public.RegisterStaticFiles(e)
 
 	public.RegisterHome(e)
 	public.RegisterUser(e)

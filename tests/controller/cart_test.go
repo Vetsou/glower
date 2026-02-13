@@ -27,7 +27,7 @@ func setupCartRouter(mockRepo repository.CartRepository) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
-	initializers.InitHTMLTemplates(r, "../../")
+	initializers.InitHTMLTemplates(r)
 
 	group := r.Group("/cart", middleware.CreateAuth(true))
 	factory := func(c *gin.Context) repository.CartRepository { return mockRepo }

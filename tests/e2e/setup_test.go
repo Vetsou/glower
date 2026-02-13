@@ -12,6 +12,8 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
+const baseURL = "http://localhost:8088"
+
 func TestMain(m *testing.M) {
 	ctx := context.Background()
 
@@ -67,8 +69,4 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 
 	os.Exit(code)
-}
-
-func TestSomething(t *testing.T) {
-	t.Log("Run e2e test")
 }

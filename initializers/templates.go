@@ -1,30 +1,23 @@
 package initializers
 
 import (
+	"glower/resources"
+	"html/template"
 	"log"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
 
-func InitHTMLTemplates(e *gin.Engine, path string) {
-	patterns := []string{
-		path + "assets/pages/index.html",
-		path + "assets/pages/user/*",
-		path + "assets/pages/shop/*",
-		path + "assets/pages/error/*",
+func InitHTMLTemplates(e *gin.Engine) {
+	tmpl, err := template.ParseFS(
+		resources.AssetsFS,
+		"assets/pages/**/*.html",
+		"assets/partials/*.html",
+	)
 
-		path + "assets/partials/*",
+	if err != nil {
+		log.Fatalf("Error creating HTML templates %s", err.Error())
 	}
 
-	var files []string
-	for _, pattern := range patterns {
-		matches, err := filepath.Glob(pattern)
-		if err != nil {
-			log.Fatalf("Failed to parse HTML filepath pattern: %v", err)
-		}
-		files = append(files, matches...)
-	}
-
-	e.LoadHTMLFiles(files...)
+	e.SetHTMLTemplate(tmpl)
 }

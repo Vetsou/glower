@@ -17,7 +17,7 @@ func NewApp() *App {
 
 	router := gin.Default()
 
-	InitHTMLTemplates(router, "")
+	InitHTMLTemplates(router)
 	RegisterServiceMiddleware(router)
 	RegisterServiceRoutes(router, db)
 

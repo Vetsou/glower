@@ -24,7 +24,7 @@ func (s *rolesMiddlewareSuite) SetupTest() {
 	gin.SetMode(gin.TestMode)
 
 	s.router = gin.New()
-	initializers.InitHTMLTemplates(s.router, "../../")
+	initializers.InitHTMLTemplates(s.router)
 
 	s.router.Use(func(c *gin.Context) {
 		if s.role != nil {

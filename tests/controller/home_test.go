@@ -17,7 +17,7 @@ func setupHomeRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
-	initializers.InitHTMLTemplates(r, "../../")
+	initializers.InitHTMLTemplates(r)
 
 	group := r.Group("/")
 	group.GET("/", controller.CreateGetHomePage())

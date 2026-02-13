@@ -20,7 +20,7 @@ func setupUserRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
-	initializers.InitHTMLTemplates(r, "../../")
+	initializers.InitHTMLTemplates(r)
 
 	group := r.Group("/user")
 	group.GET("/register", middleware.CreateAuth(false), controller.CreateRegisterPage())

@@ -12,8 +12,11 @@
 run:
 	go run main.go
 
-test:
-	go test ./tests/...
+test-l1:
+	go test -tags=L1 ./tests/...
+
+test-l2:
+	go test -tags=L2 ./tests/...
 
 db:
 	cd build && docker-compose -f glower-db.yaml up

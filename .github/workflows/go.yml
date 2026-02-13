@@ -39,4 +39,4 @@ jobs:
 
     - name: Run tests
       run: |
-        go test -v ./tests/...
+        make test-l1

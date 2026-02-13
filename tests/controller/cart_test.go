@@ -1,4 +1,6 @@
-package controller
+//go:build L1
+
+package controller_test
 
 import (
 	"glower/auth"

@@ -7,9 +7,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func handlePanic(tx *gorm.DB) {
+func handlePanic(c *gin.Context, tx *gorm.DB) {
 	if r := recover(); r != nil {
 		tx.Rollback()
+		c.AbortWithStatus(http.StatusInternalServerError)
 	}
 }
 
@@ -28,7 +29,7 @@ func isCorrectResponse(status int) bool {
 func CreateTransaction(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tx := db.Begin()
-		defer handlePanic(tx)
+		defer handlePanic(c, tx)
 
 		c.Set("tx", tx)
 		c.Next()

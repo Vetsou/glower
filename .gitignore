@@ -1,2 +1,8 @@
 # ENV
 .env
+
+# Editor config files
+.vscode
+
+# Output folder
+out

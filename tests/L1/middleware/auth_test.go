@@ -1,10 +1,12 @@
-package middleware
+//go:build L1
+
+package l1_test
 
 import (
 	"glower/auth"
 	"glower/initializers"
 	"glower/middleware"
-	"glower/tests/mocks"
+	"glower/tests/L1/mocks"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -34,7 +36,7 @@ func (s *authMiddlewareSuite) SetupTest() {
 	gin.SetMode(gin.TestMode)
 
 	s.router = gin.New()
-	initializers.InitHTMLTemplates(s.router, "../../")
+	initializers.InitHTMLTemplates(s.router)
 }
 
 func (s *authMiddlewareSuite) doRequest(token *string) *httptest.ResponseRecorder {

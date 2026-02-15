@@ -1,11 +1,13 @@
-package controller
+//go:build L1
+
+package l1_test
 
 import (
 	"glower/auth"
 	"glower/controller"
 	"glower/initializers"
 	"glower/middleware"
-	"glower/tests/mocks"
+	"glower/tests/L1/mocks"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +22,7 @@ func setupUserRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
-	initializers.InitHTMLTemplates(r, "../../")
+	initializers.InitHTMLTemplates(r)
 
 	group := r.Group("/user")
 	group.GET("/register", middleware.CreateAuth(false), controller.CreateRegisterPage())

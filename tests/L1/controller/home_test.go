@@ -1,4 +1,6 @@
-package controller
+//go:build L1
+
+package l1_test
 
 import (
 	"glower/controller"
@@ -17,7 +19,7 @@ func setupHomeRouter() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
-	initializers.InitHTMLTemplates(r, "../../")
+	initializers.InitHTMLTemplates(r)
 
 	group := r.Group("/")
 	group.GET("/", controller.CreateGetHomePage())

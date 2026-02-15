@@ -1,4 +1,6 @@
-package controller
+//go:build L1
+
+package l1_test
 
 import (
 	"glower/auth"
@@ -6,7 +8,7 @@ import (
 	"glower/database/model"
 	"glower/database/repository"
 	"glower/initializers"
-	"glower/tests/mocks"
+	"glower/tests/L1/mocks"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +27,7 @@ func setupFlowersRouter(mockRepo repository.StockRepository) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 
 	r := gin.Default()
-	initializers.InitHTMLTemplates(r, "../../")
+	initializers.InitHTMLTemplates(r)
 
 	group := r.Group("/flowers")
 	factory := func(c *gin.Context) repository.StockRepository { return mockRepo }

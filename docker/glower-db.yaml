@@ -1,6 +1,6 @@
 services:
   glower-pgdb:
-    image: postgres:16.4-alpine
+    image: postgres:18.1-alpine
     restart: always
     environment:
       POSTGRES_USER: glower-user
@@ -9,7 +9,7 @@ services:
     ports:
       - '5440:5432'
     volumes:
-      - product-vol:/var/lib/postgresql/data
+      - product-vol:/var/lib/postgresql
   glower-pgadmin:
     image: dpage/pgadmin4
     environment:

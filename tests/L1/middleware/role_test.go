@@ -1,6 +1,6 @@
 //go:build L1
 
-package middleware_test
+package l1_test
 
 import (
 	"glower/database/model"

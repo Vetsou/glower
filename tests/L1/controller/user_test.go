@@ -1,13 +1,13 @@
 //go:build L1
 
-package controller_test
+package l1_test
 
 import (
 	"glower/auth"
 	"glower/controller"
 	"glower/initializers"
 	"glower/middleware"
-	"glower/tests/mocks"
+	"glower/tests/L1/mocks"
 	"net/http"
 	"net/http/httptest"
 	"testing"

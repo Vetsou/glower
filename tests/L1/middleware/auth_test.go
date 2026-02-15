@@ -1,12 +1,12 @@
 //go:build L1
 
-package middleware_test
+package l1_test
 
 import (
 	"glower/auth"
 	"glower/initializers"
 	"glower/middleware"
-	"glower/tests/mocks"
+	"glower/tests/L1/mocks"
 	"net/http"
 	"net/http/httptest"
 	"testing"

@@ -1,6 +1,6 @@
 //go:build L2
 
-package e2e
+package l2_test
 
 import (
 	"context"
@@ -70,5 +70,3 @@ func TestMain(m *testing.M) {
 
 	m.Run()
 }
-
-func TestXxx(t *testing.T) {}

@@ -51,4 +51,4 @@ jobs:
       with:
         name: Go Tests
         path: "out/*-results.json"
-        reporter: go-test
+        reporter: golang-json

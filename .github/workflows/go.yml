@@ -37,6 +37,10 @@ jobs:
       run: |
         go build -v main.go
 
-    - name: Run tests
+    - name: Run L1 tests
       run: |
         make test-l1
+
+    - name: Run L2 tests
+      run: |
+        make test-l2

@@ -39,8 +39,16 @@ jobs:
 
     - name: Run L1 tests
       run: |
-        make test-l1
+        make test-l1-json
 
     - name: Run L2 tests
       run: |
-        make test-l2
+        make test-l2-json
+
+    - name: Publish Test Report
+      uses: dorny/test-reporter@v2
+      if: always()
+      with:
+        name: Go Tests
+        path: "out/*-results.json"
+        reporter: go-test

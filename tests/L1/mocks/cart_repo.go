@@ -29,7 +29,7 @@ func (r *CartRepoMock) RemoveCartItem(cartID uint, cartItemID uint) error {
 	return args.Error(0)
 }
 
-func (r *CartRepoMock) GetFlowerByID(flowerID uint) (model.Flower, error) {
+func (r *CartRepoMock) DecreaseInventoryAndGetFlower(flowerID uint) (model.Flower, error) {
 	args := r.Called(flowerID)
 	return args.Get(0).(model.Flower), args.Error(1)
 }

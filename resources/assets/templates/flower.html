@@ -1,0 +1,42 @@
+{{ define "flower" }}
+<div class="flower-{{.ID}}">
+  <h3>{{.Name}} -
+    {{if .DiscountPrice.Valid}}
+      <span style="text-decoration: line-through;">${{.Price}}</span>
+      <span>${{.DiscountPrice.Float64}}</span>
+    {{else}}
+      ${{.Price}}
+    {{end}}
+  </h3>
+
+  <p>
+    Stock:
+    <span id="stock-{{.ID}}">
+      {{.Inventory.Stock}}
+    </span>
+  </p>
+
+  {{if .Description}}
+    <p>Description: {{.Description}}</p>
+  {{end}}
+
+  <p>Available: {{if .Available}}Yes{{else}}No{{end}}</p>
+
+  <button
+    hx-post="/cart/"
+    hx-target="#info-container"
+    hx-swap="innerHTML"
+    hx-vals='{"flowerId": {{.ID}}}'
+    hx-target-error="#info-container">
+      Add to Cart
+  </button>
+
+  <button 
+    hx-delete="/flowers/{{.ID}}"
+    hx-target=".flower-{{.ID}}"
+    hx-swap="innerHTML"
+    hx-target-error="#info-container">
+      Delete
+  </button>
+</div>
+{{ end }}

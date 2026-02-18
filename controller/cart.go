@@ -90,10 +90,13 @@ func CreateAddCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 			return
 		}
 
-		c.HTML(http.StatusOK, "success-alert.html", gin.H{
+		c.HTML(http.StatusOK, "add-to-cart.html", gin.H{
 			"message": fmt.Sprintf(
 				"Flower %s was added to your cart. You currently have %d %s in your cart.",
-				flower.Name, cartItem.Quantity, flower.Name),
+				flower.Name, cartItem.Quantity, flower.Name,
+			),
+			"flowerID": flower.ID,
+			"stock":    flower.Inventory.Stock,
 		})
 	}
 }
@@ -119,7 +122,7 @@ func CreateRemoveCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 			return
 		}
 
-		c.HTML(http.StatusOK, "success-alert.html", gin.H{
+		c.HTML(http.StatusOK, "remove-from-cart.html", gin.H{
 			"message": "Item was removed from your cart.",
 		})
 	}

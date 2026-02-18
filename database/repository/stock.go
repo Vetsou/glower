@@ -19,7 +19,7 @@ func CreateStockRepoFactory() StockRepoFactory {
 
 type StockRepository interface {
 	GetFlowers() ([]model.Flower, error)
-	AddFlower(flower model.Flower, flowerStock uint) error
+	AddAndGetFlower(flower *model.Flower, flowerStock uint) (model.Flower, error)
 	RemoveFlower(id uint) error
 }
 
@@ -42,9 +42,9 @@ func (r *stockRepo) GetFlowers() ([]model.Flower, error) {
 	return flowers, nil
 }
 
-func (r *stockRepo) AddFlower(flower model.Flower, count uint) error {
-	if err := r.db.Create(&flower).Error; err != nil {
-		return err
+func (r *stockRepo) AddAndGetFlower(flower *model.Flower, count uint) (model.Flower, error) {
+	if err := r.db.Create(flower).Error; err != nil {
+		return model.Flower{}, err
 	}
 
 	inventory := model.Inventory{
@@ -53,10 +53,21 @@ func (r *stockRepo) AddFlower(flower model.Flower, count uint) error {
 	}
 
 	if err := r.db.Create(&inventory).Error; err != nil {
-		return err
+		return model.Flower{}, err
 	}
 
-	return nil
+	var result model.Flower
+
+	err := r.db.
+		Preload("Inventory").
+		First(&result, flower.ID).
+		Error
+
+	if err != nil {
+		return model.Flower{}, err
+	}
+
+	return result, nil
 }
 
 func (r *stockRepo) RemoveFlower(id uint) error {

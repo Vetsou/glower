@@ -59,20 +59,13 @@ func CreateAddFlower(factory repository.StockRepoFactory) gin.HandlerFunc {
 		}
 
 		repo := factory(c)
-		if err := repo.AddFlower(flower, request.Stock); err != nil {
+		flower, err := repo.AddAndGetFlower(&flower, request.Stock)
+		if err != nil {
 			internal.SetPartialError(c, http.StatusInternalServerError, "Failed to add new flower.")
 			return
 		}
 
-		c.HTML(http.StatusOK, "stock-add.html", gin.H{
-			"ID":            flower.ID,
-			"name":          flower.Name,
-			"price":         flower.Price,
-			"available":     flower.Available,
-			"description":   flower.Description,
-			"discountPrice": flower.DiscountPrice,
-			"stock":         request.Stock,
-		})
+		c.HTML(http.StatusOK, "flower-item.html", flower)
 	}
 }
 

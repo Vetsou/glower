@@ -19,7 +19,6 @@ func RegisterServiceRoutes(e *gin.Engine, db *gorm.DB) {
 	public.RegisterCart(e, db)
 }
 
-func RegisterPrivateRoutes(e *gin.Engine, db *gorm.DB) {
+func RegisterPrivateRoutes(e *gin.Engine) {
 	private.RegisterMetrics(e)
-	private.RegisterHealth(e, db)
 }

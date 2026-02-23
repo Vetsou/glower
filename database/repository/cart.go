@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var ErrOutOfStock = errors.New("flower out of stock")
+
 type CartRepoFactory func(c *gin.Context) CartRepository
 
 func CreateCartRepoFactory() CartRepoFactory {
@@ -23,7 +25,7 @@ type CartRepository interface {
 	AddOrUpdateCartItem(cartID, flowerID uint) (model.CartItem, error)
 	GetCartItems(cartID uint) ([]model.CartItem, error)
 	RemoveCartItem(cartID uint, cartItemID uint) error
-	GetFlowerByID(flowerID uint) (model.Flower, error)
+	DecreaseInventoryAndGetFlower(flowerID uint) (model.Flower, error)
 }
 
 type cartRepo struct {
@@ -98,8 +100,29 @@ func (r *cartRepo) RemoveCartItem(cartID uint, cartItemID uint) error {
 	return r.db.Where("id = ? AND cart_id = ?", cartItemID, cartID).Delete(&model.CartItem{}).Error
 }
 
-func (r *cartRepo) GetFlowerByID(flowerID uint) (model.Flower, error) {
+func (r *cartRepo) DecreaseInventoryAndGetFlower(flowerID uint) (model.Flower, error) {
+	res := r.db.Exec(`
+		UPDATE inventories
+		SET stock = stock - 1
+		WHERE flower_id = ? AND stock > 0
+	`, flowerID)
+
+	if res.Error != nil {
+		return model.Flower{}, res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return model.Flower{}, ErrOutOfStock
+	}
+
 	var flower model.Flower
-	err := r.db.Preload("Inventory").First(&flower, flowerID).Error
-	return flower, err
+	err := r.db.
+		Preload("Inventory").
+		First(&flower, flowerID).Error
+
+	if err != nil {
+		return model.Flower{}, err
+	}
+
+	return flower, nil
 }

@@ -13,6 +13,8 @@ func InitHTMLTemplates(e *gin.Engine) {
 		resources.AssetsFS,
 		"assets/pages/**/*.html",
 		"assets/partials/*.html",
+		"assets/partials/**/*.html",
+		"assets/templates/*.html",
 	)
 
 	if err != nil {

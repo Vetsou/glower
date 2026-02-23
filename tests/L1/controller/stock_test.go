@@ -82,19 +82,21 @@ func (s *stockControllerSuite) TestGetFlowers_MapsDataCorrectly() {
 
 	// Assert
 	s.Equal(http.StatusOK, resp.Code)
-	body := resp.Body.String()
+	body := strings.Join(strings.Fields(resp.Body.String()), " ")
 
+	s.Contains(body, "class=\"flower-1\"")
 	s.Contains(body, "Sunflower")
 	s.Contains(body, "$9.99")
 	s.Contains(body, "Description: Yellow flower")
-	s.Contains(body, "Stock: 10")
+	s.Contains(body, "Stock: <span id=\"stock-1\"> 10")
 	s.Contains(body, "Available: No")
 
+	s.Contains(body, "class=\"flower-2\"")
 	s.Contains(body, "Poppy")
 	s.Contains(body, `"text-decoration: line-through;">$7.99<`)
 	s.Contains(body, "$5.99")
 	s.Contains(body, "Description: Red flower")
-	s.Contains(body, "Stock: 13")
+	s.Contains(body, "Stock: <span id=\"stock-2\"> 13")
 	s.Contains(body, "Available: Yes")
 }
 
@@ -157,7 +159,7 @@ func (s *stockControllerSuite) TestRemoveFlower_WithCorrectData() {
 
 func (s *stockControllerSuite) TestAddFlower_MapsDataCorrectly() {
 	// Arrange
-	s.mockRepo.On("AddFlower", mock.Anything, mock.Anything).Return(nil)
+	s.mockRepo.On("AddAndGetFlower", mock.Anything, mock.Anything).Return(mocks.GetValidAddFlowerModel(), nil)
 
 	form := mocks.GetValidAddFlowerForm()
 	resp := httptest.NewRecorder()
@@ -168,19 +170,20 @@ func (s *stockControllerSuite) TestAddFlower_MapsDataCorrectly() {
 
 	// Assert
 	s.Equal(http.StatusOK, resp.Code)
-	body := resp.Body.String()
+	body := strings.Join(strings.Fields(resp.Body.String()), " ")
 
+	s.Contains(body, "class=\"flower-67\"")
 	s.Contains(body, "FlowerName")
 	s.Contains(body, `"text-decoration: line-through;">$15<`)
 	s.Contains(body, "$10")
 	s.Contains(body, "Description: Nice flower")
-	s.Contains(body, "Stock: 12")
+	s.Contains(body, "Stock: <span id=\"stock-67\"> 12")
 	s.Contains(body, "Available: Yes")
 }
 
 func (s *stockControllerSuite) TestAddFlower_WithMissingOptionalData() {
 	// Arrange
-	s.mockRepo.On("AddFlower", mock.Anything, mock.Anything).Return(nil)
+	s.mockRepo.On("AddAndGetFlower", mock.Anything, mock.Anything).Return(mocks.GetOptionalFieldsAddFlowerModel(), nil)
 
 	form := mocks.GetOptionalFieldsAddFlowerForm()
 	resp := httptest.NewRecorder()
@@ -191,11 +194,12 @@ func (s *stockControllerSuite) TestAddFlower_WithMissingOptionalData() {
 
 	// Assert
 	s.Equal(http.StatusOK, resp.Code)
-	body := resp.Body.String()
+	body := strings.Join(strings.Fields(resp.Body.String()), " ")
 
+	s.Contains(body, "class=\"flower-43\"")
 	s.Contains(body, "FlowerName")
 	s.Contains(body, "$12")
-	s.Contains(body, "Stock: 13")
+	s.Contains(body, "Stock: <span id=\"stock-43\"> 13")
 	s.Contains(body, "Available: No")
 }
 

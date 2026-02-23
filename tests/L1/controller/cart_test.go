@@ -148,7 +148,7 @@ func (s *cartControllerSuite) TestGetCartItems_CartItemsError() {
 
 func (s *cartControllerSuite) TestAddCartItem_WithCorrectData() {
 	// Arrange
-	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
+	s.mockRepo.On("DecreaseInventoryAndGetFlower", mock.Anything).Return(mocks.GetCartFlower(true), nil)
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("AddOrUpdateCartItem", mock.Anything, mock.Anything).Return(mocks.GetAddedCartFlower(), nil)
 
@@ -168,7 +168,7 @@ func (s *cartControllerSuite) TestAddCartItem_WithCorrectData() {
 
 func (s *cartControllerSuite) TestAddCartItem_InvalidFlowerID() {
 	// Arrange
-	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(model.Flower{}, assert.AnError)
+	s.mockRepo.On("DecreaseInventoryAndGetFlower", mock.Anything).Return(model.Flower{}, assert.AnError)
 
 	form := url.Values{}
 	form.Add("flowerId", "13")
@@ -180,13 +180,13 @@ func (s *cartControllerSuite) TestAddCartItem_InvalidFlowerID() {
 	s.router.ServeHTTP(resp, req)
 
 	// Assert
-	s.Equal(http.StatusNotFound, resp.Code)
-	s.Contains(resp.Body.String(), "The requested flower is unavailable.")
+	s.Equal(http.StatusInternalServerError, resp.Code)
+	s.Contains(resp.Body.String(), "Unable to load flower data.")
 }
 
-func (s *cartControllerSuite) TestAddCartItem_FlowerUnavailable() {
+func (s *cartControllerSuite) TestAddCartItem_FlowerOutOfStock() {
 	// Arrange
-	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(false), nil)
+	s.mockRepo.On("DecreaseInventoryAndGetFlower", mock.Anything).Return(model.Flower{}, repository.ErrOutOfStock)
 
 	form := url.Values{}
 	form.Add("flowerId", "13")
@@ -199,12 +199,12 @@ func (s *cartControllerSuite) TestAddCartItem_FlowerUnavailable() {
 
 	// Assert
 	s.Equal(http.StatusBadRequest, resp.Code)
-	s.Contains(resp.Body.String(), "This flower is no longer available for purchase.")
+	s.Contains(resp.Body.String(), "The requested flower is out of stock.")
 }
 
 func (s *cartControllerSuite) TestAddCartItem_UnableToLoadCart() {
 	// Arrange
-	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
+	s.mockRepo.On("DecreaseInventoryAndGetFlower", mock.Anything).Return(mocks.GetCartFlower(true), nil)
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, assert.AnError)
 
 	form := url.Values{}
@@ -223,7 +223,7 @@ func (s *cartControllerSuite) TestAddCartItem_UnableToLoadCart() {
 
 func (s *cartControllerSuite) TestAddCartItem_UnableToAddCartItem() {
 	// Arrange
-	s.mockRepo.On("GetFlowerByID", mock.Anything).Return(mocks.GetCartFlower(true), nil)
+	s.mockRepo.On("DecreaseInventoryAndGetFlower", mock.Anything).Return(mocks.GetCartFlower(true), nil)
 	s.mockRepo.On("GetUserCart", mock.Anything).Return(model.Cart{}, nil)
 	s.mockRepo.On("AddOrUpdateCartItem", mock.Anything, mock.Anything).Return(model.CartItem{}, assert.AnError)
 

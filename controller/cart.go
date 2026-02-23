@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"glower/controller/internal"
 	"glower/database/model"
@@ -66,14 +67,14 @@ func CreateAddCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 
 		repo := factory(c)
 
-		flower, err := repo.GetFlowerByID(request.FlowerID)
+		flower, err := repo.DecreaseInventoryAndGetFlower(request.FlowerID)
 		if err != nil {
-			internal.SetPartialError(c, http.StatusNotFound, "The requested flower is unavailable.")
-			return
-		}
+			if errors.Is(err, repository.ErrOutOfStock) {
+				internal.SetPartialError(c, http.StatusBadRequest, "The requested flower is out of stock.")
+				return
+			}
 
-		if !flower.Available {
-			internal.SetPartialError(c, http.StatusBadRequest, "This flower is no longer available for purchase.")
+			internal.SetPartialError(c, http.StatusInternalServerError, "Unable to load flower data.")
 			return
 		}
 
@@ -89,10 +90,13 @@ func CreateAddCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 			return
 		}
 
-		c.HTML(http.StatusOK, "success-alert.html", gin.H{
+		c.HTML(http.StatusOK, "add-to-cart.html", gin.H{
 			"message": fmt.Sprintf(
 				"Flower %s was added to your cart. You currently have %d %s in your cart.",
-				flower.Name, cartItem.Quantity, flower.Name),
+				flower.Name, cartItem.Quantity, flower.Name,
+			),
+			"flowerID": flower.ID,
+			"stock":    flower.Inventory.Stock,
 		})
 	}
 }
@@ -118,7 +122,7 @@ func CreateRemoveCartItem(factory repository.CartRepoFactory) gin.HandlerFunc {
 			return
 		}
 
-		c.HTML(http.StatusOK, "success-alert.html", gin.H{
+		c.HTML(http.StatusOK, "remove-from-cart.html", gin.H{
 			"message": "Item was removed from your cart.",
 		})
 	}

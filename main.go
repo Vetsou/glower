@@ -13,7 +13,7 @@ func init() {
 }
 
 func main() {
-	gin.SetMode(gin.DebugMode)
+	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	// Init Application
 	a := initializers.NewApp()
@@ -22,7 +22,7 @@ func main() {
 	go func() {
 		privateRouter := gin.New()
 		privateRouter.Use(gin.Recovery())
-		initializers.RegisterPrivateRoutes(privateRouter, a.DB)
+		initializers.RegisterPrivateRoutes(privateRouter)
 
 		if err := privateRouter.Run(os.Getenv("PRIV_ADDR")); err != nil {
 			log.Fatalf("Failed to start private metrics server: %v", err)
